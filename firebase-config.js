@@ -1,16 +1,11 @@
 /*
   MainGate – Firebase-Konfiguration
-  ---------------------------------
-  Solange hier nichts eingetragen ist, läuft MainGate im Demo-Modus:
-  Die Daten liegen nur im Browser dieses Geräts (zum Testen auf einem iPad oder am Rechner).
-
-  Für den echten Betrieb mit zwei iPads trägst du hier die Werte deines
-  Firebase-Projekts ein (Schritt-für-Schritt-Anleitung: README.md, Abschnitt 2).
+  Projekt: maingate-902e4
 */
 window.MAINGATE_FIREBASE = {
-  apiKey: "",
-  authDomain: "",
-  databaseURL: "",
-  projectId: "",
-  appId: ""
+  apiKey: "AIzaSyDFQ6pXiKbI8zXMgnC9XLrdUi67HzJ81Kk",
+  authDomain: "maingate-902e4.firebaseapp.com",
+  databaseURL: "https://maingate-902e4-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "maingate-902e4",
+  appId: "1:382907619806:web:6d75ca227cc39ce1c1654f"
 };
