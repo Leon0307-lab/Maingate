@@ -1,0 +1,1544 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MainGate Dashboard">
+<meta name="theme-color" content="#08111f">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<title>MainGate · Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<style>
+/* MainGate – Grundstil (Display, Dashboard, Startseite) */
+:root {
+  --ink: #08111f;
+  --ink-2: #0d1a2e;
+  --ink-3: #14243d;
+  --line: rgba(190, 210, 245, .14);
+  --text: #eef3fb;
+  --muted: #8da2c3;
+  --glow: #ffb547;          /* Fensterlicht der Skyline */
+  --ok: #3ddc84;
+  --danger: #ff5a45;
+  --radius: 14px;
+  --font: "Archivo", "Avenir Next", "Helvetica Neue", system-ui, -apple-system, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--ink);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--glow); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5em;
+  min-height: 44px; padding: 0 1.1em;
+  background: rgba(255, 255, 255, .08); border: 1px solid var(--line); border-radius: 10px;
+  font-weight: 600; letter-spacing: .01em; user-select: none; -webkit-user-select: none;
+  transition: background .15s, transform .08s;
+}
+.btn:active { transform: scale(.97); }
+.btn:hover { background: rgba(255, 255, 255, .14); }
+.btn.primary { background: var(--glow); border-color: transparent; color: #1a1205; }
+.btn.primary:hover { background: #ffc46e; }
+.btn.danger { background: #c92f1d; border-color: transparent; color: #fff; }
+.btn.danger:hover { background: #e2402c; }
+.btn.ghost { background: transparent; }
+.btn.small { min-height: 36px; padding: 0 .8em; font-size: .9rem; }
+.btn[disabled] { opacity: .4; pointer-events: none; }
+
+/* Formularfelder */
+input[type=text], input[type=email], input[type=password], input[type=number], input[type=time],
+input[type=datetime-local], select, textarea {
+  width: 100%; min-height: 44px; padding: .55em .75em;
+  background: rgba(0, 0, 0, .28); border: 1px solid var(--line); border-radius: 10px;
+}
+input[type=color] { width: 56px; height: 44px; padding: 3px; background: rgba(0,0,0,.28); border: 1px solid var(--line); border-radius: 10px; }
+input[type=range] { width: 100%; accent-color: var(--glow); }
+input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--glow); }
+textarea { min-height: 96px; resize: vertical; }
+select option { background: var(--ink-2); }
+
+/* Anmeldung */
+#mg-login {
+  position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 24px;
+  background: radial-gradient(120% 90% at 50% 100%, #17305a 0%, var(--ink) 62%);
+}
+.mg-login-box {
+  width: min(420px, 100%); display: grid; gap: 14px; padding: 28px;
+  background: rgba(13, 26, 46, .85); border: 1px solid var(--line); border-radius: 18px;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.mg-login-box label { display: grid; gap: 6px; font-size: .9rem; color: var(--muted); }
+.mg-brand { font-size: 1.9rem; font-weight: 800; font-stretch: 85%; letter-spacing: .02em; }
+.mg-login-lead { color: var(--muted); font-size: .95rem; }
+.mg-login-err { min-height: 1.3em; color: var(--danger); font-size: .9rem; }
+
+/* Hinweise */
+.mg-banner {
+  position: fixed; left: 50%; bottom: max(70px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+  z-index: 900; max-width: min(92vw, 640px); padding: 10px 16px; border-radius: 10px;
+  background: rgba(20, 36, 61, .96); border: 1px solid var(--line); font-size: .9rem;
+  transition: opacity .5s;
+}
+.mg-banner.warn { background: #6b2a14; }
+.mg-banner.hide { opacity: 0; pointer-events: none; }
+#toast {
+  position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); z-index: 950;
+  transform: translate(-50%, 24px); opacity: 0; pointer-events: none;
+  padding: 12px 20px; border-radius: 12px; background: rgba(8, 17, 31, .96);
+  border: 1px solid var(--line); font-weight: 600; max-width: 90vw; text-align: center;
+  transition: opacity .25s, transform .25s;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* MainGate – Dashboard (iPad, Querformat) */
+body.dash {
+  min-height: 100vh; min-height: 100dvh;
+  background: radial-gradient(120% 90% at 80% 110%, #14284a 0%, var(--ink) 60%);
+  background-attachment: fixed;
+  touch-action: manipulation;
+}
+body.dash::before { /* Skyline als leiser Hintergrund */
+  content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: 40vh; z-index: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1600 360%22 preserveAspectRatio=%22xMidYMax slice%22%3E%3Cg fill=%22%23ffffff%22%3E%3Crect x=%220%22 y=%22295%22 width=%2254%22 height=%2265%22/%3E%3Crect x=%2254%22 y=%22246%22 width=%2238%22 height=%22114%22/%3E%3Crect x=%2260%22 y=%22238%22 width=%2226%22 height=%228%22/%3E%3Crect x=%2292%22 y=%22287%22 width=%2266%22 height=%2273%22/%3E%3Crect x=%2298%22 y=%22279%22 width=%2254%22 height=%228%22/%3E%3Crect x=%22164%22 y=%22306%22 width=%2260%22 height=%2254%22/%3E%3Crect x=%22170%22 y=%22298%22 width=%2248%22 height=%228%22/%3E%3Crect x=%22232%22 y=%22307%22 width=%2261%22 height=%2253%22/%3E%3Crect x=%22294%22 y=%22234%22 width=%2248%22 height=%22126%22/%3E%3Crect x=%22342%22 y=%22240%22 width=%2270%22 height=%22120%22/%3E%3Crect x=%22415%22 y=%22243%22 width=%2236%22 height=%22117%22/%3E%3Crect x=%22455%22 y=%22296%22 width=%2260%22 height=%2264%22/%3E%3Crect x=%22519%22 y=%22291%22 width=%2269%22 height=%2269%22/%3E%3Crect x=%22525%22 y=%22283%22 width=%2257%22 height=%228%22/%3E%3Crect x=%22591%22 y=%22302%22 width=%2257%22 height=%2258%22/%3E%3Crect x=%22649%22 y=%22307%22 width=%2270%22 height=%2253%22/%3E%3Crect x=%22726%22 y=%22246%22 width=%2277%22 height=%22114%22/%3E%3Crect x=%22808%22 y=%22240%22 width=%2263%22 height=%22120%22/%3E%3Crect x=%22876%22 y=%22283%22 width=%2253%22 height=%2277%22/%3E%3Crect x=%22932%22 y=%22241%22 width=%2239%22 height=%22119%22/%3E%3Crect x=%22938%22 y=%22233%22 width=%2227%22 height=%228%22/%3E%3Crect x=%22978%22 y=%22257%22 width=%2255%22 height=%22103%22/%3E%3Crect x=%22984%22 y=%22249%22 width=%2243%22 height=%228%22/%3E%3Crect x=%221034%22 y=%22249%22 width=%2241%22 height=%22111%22/%3E%3Crect x=%221080%22 y=%22252%22 width=%2243%22 height=%22108%22/%3E%3Crect x=%221124%22 y=%22241%22 width=%2269%22 height=%22119%22/%3E%3Crect x=%221198%22 y=%22270%22 width=%2255%22 height=%2290%22/%3E%3Crect x=%221260%22 y=%22303%22 width=%2238%22 height=%2257%22/%3E%3Crect x=%221305%22 y=%22306%22 width=%2278%22 height=%2254%22/%3E%3Crect x=%221311%22 y=%22298%22 width=%2266%22 height=%228%22/%3E%3Crect x=%221387%22 y=%22241%22 width=%2275%22 height=%22119%22/%3E%3Crect x=%221469%22 y=%22265%22 width=%2252%22 height=%2295%22/%3E%3Crect x=%221526%22 y=%22255%22 width=%2235%22 height=%22105%22/%3E%3Crect x=%221562%22 y=%22307%22 width=%2265%22 height=%2253%22/%3E%3Crect x=%221568%22 y=%22299%22 width=%2253%22 height=%228%22/%3E%3Cpolygon points=%22170,360 170,112 202,48 234,112 234,360%22/%3E%3Crect x=%22201%22 y=%2228%22 width=%222%22 height=%2222%22/%3E%3Cpolygon points=%22300,360 300,185 346,152 346,360%22/%3E%3Cpolygon points=%22420,360 420,72 436,60 466,60 482,72 482,360%22/%3E%3Crect x=%22449%22 y=%228%22 width=%224%22 height=%2254%22/%3E%3Cpolygon points=%22560,360 560,160 604,150 604,360%22/%3E%3Cpolygon points=%22612,360 612,152 656,164 656,360%22/%3E%3Cpolygon points=%22720,360 720,135 733,125 741,140 748,125 756,140 763,125 776,135 776,360%22/%3E%3Cpolygon points=%22840,360 840,150 900,140 900,360%22/%3E%3Crect x=%22980%22 y=%22135%22 width=%2258%22 height=%22225%22/%3E%3Crect x=%22986%22 y=%22118%22 width=%2246%22 height=%2218%22/%3E%3Cpolygon points=%22998,118 1006,100 1012,100 1020,118%22/%3E%3Crect x=%221007%22 y=%2236%22 width=%224%22 height=%2266%22/%3E%3Cpolygon points=%221110,360 1110,150 1126,135 1146,135 1162,150 1162,360%22/%3E%3Crect x=%221190%22 y=%22175%22 width=%2240%22 height=%22185%22/%3E%3Crect x=%221197%22 y=%22165%22 width=%2226%22 height=%2210%22/%3E%3Cpolygon points=%221260,360 1260,190 1304,172 1304,360%22/%3E%3Crect x=%221320%22 y=%22210%22 width=%2270%22 height=%22150%22/%3E%3C/g%3E%3C/svg%3E") center bottom / cover no-repeat; opacity: .05; pointer-events: none;
+}
+#app { position: relative; z-index: 1; display: grid; grid-template-columns: 210px minmax(0, 1fr); min-height: 100vh; min-height: 100dvh; }
+
+/* Menü links */
+#rail {
+  position: sticky; top: 0; height: 100vh; height: 100dvh; display: flex; flex-direction: column; gap: 6px;
+  padding: max(20px, env(safe-area-inset-top)) 14px 16px max(14px, env(safe-area-inset-left));
+  background: rgba(8, 17, 31, .72); border-right: 1px solid var(--line);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.brand { font-size: 1.6rem; font-weight: 900; font-stretch: 78%; letter-spacing: .01em; padding: 0 10px 14px; }
+.nav {
+  text-align: left; min-height: 48px; padding: 0 14px; border: 0; border-radius: 12px; background: transparent;
+  font-weight: 600; font-size: 1.02rem; color: var(--muted); transition: background .15s, color .15s;
+}
+.nav:hover { background: rgba(255, 255, 255, .06); color: var(--text); }
+.nav.on { background: rgba(255, 181, 71, .14); color: var(--glow); box-shadow: inset 3px 0 0 var(--glow); }
+.rail-foot { margin-top: auto; display: grid; gap: 10px; padding: 0 10px; }
+#railclock { font-weight: 800; font-stretch: 80%; font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+
+/* Inhalt */
+#main { min-width: 0; padding: max(22px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) 40px 26px; }
+.tab { display: none; }
+.tab.on { display: block; }
+.ph { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+.ph h1 { font-size: 1.9rem; font-weight: 800; font-stretch: 82%; letter-spacing: -.005em; }
+.hint { color: var(--muted); font-size: .92rem; margin-bottom: 14px; max-width: 70ch; }
+.hint b { color: var(--text); }
+
+#bell {
+  position: sticky; top: 8px; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  margin-bottom: 14px; padding: 12px 16px; border-radius: 14px; background: var(--glow); color: #1a1205;
+  font-weight: 800; font-size: 1.1rem; animation: ring 1s ease-in-out 3;
+}
+@keyframes ring { 0%, 100% { transform: none; } 25% { transform: rotate(-1deg) scale(1.01); } 75% { transform: rotate(1deg) scale(1.01); } }
+#bell .btn { background: rgba(0, 0, 0, .15); border-color: transparent; color: #1a1205; }
+
+.seg { display: inline-flex; padding: 4px; border-radius: 12px; background: rgba(0, 0, 0, .3); border: 1px solid var(--line); }
+.seg button { min-height: 40px; padding: 0 18px; border: 0; border-radius: 9px; background: transparent; font-weight: 700; color: var(--muted); }
+.seg button.on { background: var(--glow); color: #1a1205; }
+
+/* Steuerung */
+.home { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); gap: 22px; align-items: start; }
+#tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.tile {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 10px;
+  min-height: 132px; padding: 16px; border: 3px solid transparent; border-radius: 18px; text-align: left; color: var(--tc, #fff);
+  background: linear-gradient(160deg, var(--c), var(--c2)); box-shadow: 0 8px 22px rgba(0, 0, 0, .28);
+  transition: transform .1s, box-shadow .15s;
+}
+.tile:active { transform: scale(.97); }
+.tile .ti { font-size: 2.3rem; line-height: 1; height: 2.3rem; }
+.tile .ti img { height: 100%; width: auto; max-width: 3.4rem; object-fit: contain; display: block; }
+.tile .tl { font-weight: 800; font-stretch: 82%; font-size: 1.28rem; line-height: 1.1; }
+.tile .ts { font-size: .8rem; opacity: .85; line-height: 1.2; }
+.tile.on { border-color: #fff; box-shadow: 0 0 0 4px var(--c), 0 10px 28px rgba(0, 0, 0, .4); }
+.tile.on::after {
+  content: "Aktiv"; position: absolute; top: 12px; right: 12px; padding: 2px 9px; border-radius: 999px;
+  background: rgba(255, 255, 255, .92); color: #0a1424; font-size: .75rem; font-weight: 800;
+}
+body.auto .tile { opacity: .55; }
+body.auto .tile.on { opacity: 1; }
+
+.home-r { display: grid; gap: 14px; position: sticky; top: 16px; }
+.pv-wrap { position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: 16px; overflow: hidden; border: 1px solid var(--line); background: #000; }
+#pv { position: absolute; left: 0; top: 0; width: 1024px; height: 768px; transform-origin: 0 0; }
+#pvframe { width: 1024px; height: 768px; border: 0; pointer-events: none; display: block; }
+
+.box { padding: 16px; border-radius: 16px; background: rgba(13, 26, 46, .78); border: 1px solid var(--line); }
+.box h2 { font-size: 1.05rem; font-weight: 800; margin-bottom: 10px; }
+.box h2.mt { margin-top: 22px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.chip {
+  min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line);
+  background: rgba(255, 255, 255, .08); font-weight: 600; font-size: .95rem;
+}
+.chip:active { transform: scale(.96); }
+.chip.on { background: var(--glow); color: #1a1205; border-color: transparent; }
+.row2 { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+.row2 > input, .row2 > label { flex: 1 1 140px; }
+.sosbtn { min-height: 54px; background: rgba(214, 48, 30, .3); border-color: rgba(255, 120, 100, .55); font-size: 1.05rem; }
+.sosbtn.on { background: #d4271a; border-color: transparent; color: #fff; }
+
+/* Listen und Formulare */
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.stack { display: grid; gap: 16px; }
+.form { display: grid; gap: 12px; }
+.form label { display: grid; gap: 6px; font-size: .88rem; color: var(--muted); }
+.form label.inline { display: flex; align-items: center; gap: 10px; color: var(--text); font-size: .98rem; }
+.listed { display: grid; gap: 8px; margin-bottom: 10px; }
+.listed .li { display: flex; gap: 8px; align-items: center; }
+.listed .li input { flex: 1 1 0; min-width: 0; }
+.listed .li input.num { flex: 0 0 28%; }
+.xbtn { flex: 0 0 auto; width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255, 255, 255, .06); font-size: 1.1rem; }
+.xbtn:hover { background: rgba(214, 48, 30, .35); }
+
+.photo-row { display: flex; align-items: center; gap: 16px; }
+.setphoto { width: 96px; height: 96px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--ink-3); border: 3px solid var(--glow); font-size: 2rem; font-weight: 800; color: var(--muted); }
+.setphoto img { width: 100%; height: 100%; object-fit: cover; }
+.photo-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Status-Karten */
+#statuslist { display: grid; gap: 12px; }
+.scard { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 16px; padding: 14px; border-radius: 16px; background: rgba(13, 26, 46, .78); border: 1px solid var(--line); }
+.sprev {
+  display: flex; align-items: center; justify-content: center; border-radius: 14px; min-height: 96px; font-size: 2.6rem;
+  background: linear-gradient(160deg, var(--c), var(--c2)); color: var(--tc, #fff);
+}
+.sprev img { max-height: 60px; max-width: 70px; object-fit: contain; display: block; }
+.sfields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; align-items: end; }
+.sfields label { display: grid; gap: 5px; font-size: .82rem; color: var(--muted); }
+.sfields .wide { grid-column: 1 / -1; }
+.sactions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.sactions .grow { flex: 1; }
+
+/* Zeitplan */
+#rulelist { display: grid; gap: 12px; }
+.rule { display: grid; gap: 12px; padding: 14px; border-radius: 16px; background: rgba(13, 26, 46, .78); border: 1px solid var(--line); }
+.days { display: flex; gap: 6px; flex-wrap: wrap; }
+.days .chip { min-width: 48px; padding: 0 10px; }
+.rule .row2 { align-items: flex-end; }
+.rule label { display: grid; gap: 5px; font-size: .82rem; color: var(--muted); }
+
+/* Termine */
+.evlist { list-style: none; display: grid; gap: 8px; max-height: 60vh; overflow: auto; }
+.evlist li { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; padding: 10px 12px; border-radius: 10px; background: rgba(255, 255, 255, .06); border-left: 4px solid var(--glow); }
+.evlist li.ms { border-left-color: #4aa3ff; }
+.evlist .et { font-weight: 700; }
+.evlist .em { color: var(--muted); font-size: .85rem; }
+.evlist li.empty { grid-template-columns: 1fr; color: var(--muted); border-left-color: transparent; }
+
+/* Sperre */
+#lock { position: fixed; inset: 0; z-index: 1100; display: grid; place-items: center; padding: 24px; background: radial-gradient(120% 90% at 50% 100%, #17305a 0%, var(--ink) 62%); }
+#lockpin { text-align: center; font-size: 1.6rem; letter-spacing: .4em; }
+
+@media (max-width: 900px) {
+  #app { grid-template-columns: 1fr; }
+  #rail { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; padding: 10px; }
+  .brand { padding: 0 8px 0 4px; }
+  .rail-foot { margin: 0 0 0 auto; display: flex; align-items: center; }
+  .home, .cols { grid-template-columns: 1fr; }
+  .home-r { position: static; }
+  .scard { grid-template-columns: 1fr; }
+}
+
+</style>
+</head>
+<body class="dash">
+
+<div id="app" hidden>
+  <nav id="rail" aria-label="Hauptmenü">
+    <div class="brand">MainGate</div>
+    <button class="nav on" data-tab="home" type="button">Steuerung</button>
+    <button class="nav" data-tab="status" type="button">Status</button>
+    <button class="nav" data-tab="calendar" type="button">Kalender</button>
+    <button class="nav" data-tab="schedule" type="button">Zeitplan</button>
+    <button class="nav" data-tab="settings" type="button">Einstellungen</button>
+    <div class="rail-foot">
+      <div id="railclock"></div>
+      <button id="lockbtn" class="btn small ghost" type="button" hidden>Sperren</button>
+    </div>
+  </nav>
+
+  <main id="main">
+    <div id="bell" hidden>
+      <span>🔔 Jemand klingelt an der Tür</span>
+      <button id="bellok" class="btn small" type="button">Verstanden</button>
+    </div>
+
+    <!-- Steuerung -->
+    <section id="tab-home" class="tab on">
+      <div class="home">
+        <div class="home-l">
+          <header class="ph">
+            <h1>Raumstatus</h1>
+            <div class="seg" role="group" aria-label="Betriebsart">
+              <button id="modeManual" type="button">Manuell</button>
+              <button id="modeAuto" type="button">Automatik</button>
+            </div>
+          </header>
+          <p id="autoinfo" class="hint" hidden></p>
+          <div id="tiles"></div>
+        </div>
+
+        <div class="home-r">
+          <div class="pv-wrap"><div id="pv"><iframe id="pvframe" title="Vorschau Türschild" src="display.html?preview=1" tabindex="-1"></iframe></div></div>
+
+          <div class="box" id="backbox">
+            <h2>Zurück in …</h2>
+            <div class="chips" id="backchips"></div>
+          </div>
+
+          <div class="box">
+            <h2>Nachricht an Besucher</h2>
+            <div class="chips" id="msgchips"></div>
+            <div class="row2">
+              <input id="msgtext" type="text" maxlength="140" placeholder="z. B. Bin in Raum 204" aria-label="Nachricht">
+              <button id="msgsend" class="btn primary" type="button">Anzeigen</button>
+              <button id="msgclear" class="btn" type="button">Löschen</button>
+            </div>
+          </div>
+
+          <button id="sostoggle" class="btn sosbtn" type="button">Notfall-Anzeige einschalten</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Status verwalten -->
+    <section id="tab-status" class="tab">
+      <header class="ph">
+        <h1>Status verwalten</h1>
+        <button id="addstatus" class="btn primary" type="button">Status hinzufügen</button>
+      </header>
+      <p class="hint">Icon: Emoji eintippen oder ein eigenes Bild hochladen (PNG, JPG, SVG). Änderungen werden sofort gespeichert.</p>
+      <div id="statuslist"></div>
+    </section>
+
+    <!-- Kalender -->
+    <section id="tab-calendar" class="tab">
+      <header class="ph"><h1>Kalender</h1></header>
+      <div class="cols">
+        <div class="box">
+          <h2>Termin hinzufügen</h2>
+          <form id="evform" class="form">
+            <label>Titel<input id="evtitle" type="text" maxlength="80" placeholder="z. B. Teamrunde" required></label>
+            <label class="inline"><input id="evall" type="checkbox"> Ganztägig</label>
+            <div class="row2">
+              <label>Beginn<input id="evstart" type="datetime-local" required></label>
+              <label>Ende<input id="evend" type="datetime-local" required></label>
+            </div>
+            <button class="btn primary" type="submit">Termin speichern</button>
+          </form>
+
+          <h2 class="mt">Microsoft-Kalender</h2>
+          <p id="msstate" class="hint"></p>
+          <div class="row2">
+            <button id="msconnect" class="btn" type="button">Verbinden</button>
+            <button id="mssync" class="btn" type="button" hidden>Jetzt abgleichen</button>
+            <button id="msdisconnect" class="btn ghost" type="button" hidden>Trennen</button>
+          </div>
+        </div>
+        <div class="box">
+          <h2>Kommende Termine</h2>
+          <ul id="evlist" class="evlist"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Zeitplan -->
+    <section id="tab-schedule" class="tab">
+      <header class="ph">
+        <h1>Zeitplan</h1>
+        <button id="addrule" class="btn primary" type="button">Regel hinzufügen</button>
+      </header>
+      <p class="hint">Gilt nur in der Betriebsart <b>Automatik</b>. Reihenfolge: laufender Termin → Zeitplan → Standardstatus (siehe Einstellungen).</p>
+      <div id="rulelist"></div>
+    </section>
+
+    <!-- Einstellungen -->
+    <section id="tab-settings" class="tab">
+      <header class="ph"><h1>Einstellungen</h1></header>
+      <div class="cols">
+        <div class="stack">
+          <div class="box">
+            <h2>Person und Raum</h2>
+            <div class="form">
+              <div class="photo-row">
+                <div id="setphoto" class="setphoto"></div>
+                <div class="photo-btns">
+                  <label class="btn" for="photofile">Foto wählen</label>
+                  <input id="photofile" type="file" accept="image/*" hidden>
+                  <button id="photodel" class="btn ghost" type="button">Entfernen</button>
+                </div>
+              </div>
+              <label>Name<input type="text" data-k="name"></label>
+              <label>Funktion / Zusatz<input type="text" data-k="title"></label>
+              <label>Raum<input type="text" data-k="room"></label>
+              <label>Sprache der Anzeige
+                <select data-k="lang"><option value="de">Deutsch</option><option value="en">English</option></select>
+              </label>
+              <label class="inline"><input type="checkbox" data-k="showTitles"> Terminnamen auf dem Türschild zeigen (sonst „Belegt“)</label>
+            </div>
+          </div>
+
+          <div class="box">
+            <h2>Automatik</h2>
+            <div class="form">
+              <label>Standardstatus (wenn nichts anderes zutrifft)<select data-k="defaultStatusId" class="statussel"></select></label>
+              <label>Status bei laufendem Termin<select data-k="calendarStatusId" class="statussel"></select></label>
+            </div>
+          </div>
+
+          <div class="box">
+            <h2>Wetter</h2>
+            <div class="form">
+              <label>Ort (nur Beschriftung)<input type="text" data-k="city"></label>
+              <div class="row2">
+                <label>Breitengrad<input type="number" step="0.0001" data-k="lat"></label>
+                <label>Längengrad<input type="number" step="0.0001" data-k="lon"></label>
+              </div>
+              <p class="hint">Außentemperatur über Open-Meteo. Standard: Frankfurt am Main.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="stack">
+          <div class="box">
+            <h2>Notfallnummern</h2>
+            <div id="emlist" class="listed"></div>
+            <button id="addem" class="btn small" type="button">Nummer hinzufügen</button>
+          </div>
+
+          <div class="box">
+            <h2>Schnellnachrichten</h2>
+            <div id="msglist" class="listed"></div>
+            <button id="addmsg" class="btn small" type="button">Nachricht hinzufügen</button>
+          </div>
+
+          <div class="box">
+            <h2>QR-Code auf dem Türschild</h2>
+            <div class="form">
+              <label>Beschriftung<input type="text" data-k="qr.label" placeholder="z. B. Kontakt speichern"></label>
+              <label>Inhalt (Link, Telefonnummer, WLAN …)<textarea data-k="qr.text" placeholder="https://…  oder  tel:+49…  oder  WIFI:T:WPA;S:Name;P:Passwort;;"></textarea></label>
+            </div>
+          </div>
+
+          <div class="box">
+            <h2>Nachtmodus</h2>
+            <div class="form">
+              <label class="inline"><input type="checkbox" data-k="night.enabled"> Türschild nachts abdunkeln</label>
+              <div class="row2">
+                <label>Von<input type="time" data-k="night.from"></label>
+                <label>Bis<input type="time" data-k="night.to"></label>
+              </div>
+              <label>Abdunkeln<input type="range" min="0.2" max="0.95" step="0.05" data-k="night.dim"></label>
+            </div>
+          </div>
+
+          <div class="box">
+            <h2>Sperre (PIN)</h2>
+            <div class="form">
+              <p id="pinstate" class="hint"></p>
+              <div class="row2">
+                <input id="pinnew" type="password" inputmode="numeric" autocomplete="new-password" maxlength="12" placeholder="Neue PIN (4–12 Ziffern)" aria-label="Neue PIN">
+                <button id="pinset" class="btn" type="button">PIN speichern</button>
+                <button id="pindel" class="btn ghost" type="button">PIN entfernen</button>
+              </div>
+              <label>Automatisch sperren nach (Minuten)<input type="number" min="1" max="120" data-k="lockMinutes"></label>
+            </div>
+          </div>
+
+          <div class="box">
+            <h2>Microsoft-Kalender</h2>
+            <div class="form">
+              <label>Anwendungs-ID (Client-ID aus Azure)<input type="text" data-k="ms.clientId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+              <label>Mandant<input type="text" data-k="ms.tenant" placeholder="common" autocapitalize="off"></label>
+              <p class="hint">Einrichtung: README, Schritt 3. Danach unter „Kalender“ auf „Verbinden“ tippen.</p>
+            </div>
+          </div>
+
+          <div class="box">
+            <h2>Konto</h2>
+            <div class="row2"><button id="logout" class="btn" type="button">Abmelden</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="lock" hidden>
+  <form id="lockform" class="mg-login-box" autocomplete="off">
+    <div class="mg-brand">MainGate</div>
+    <p class="mg-login-lead">Dashboard gesperrt. PIN eingeben.</p>
+    <input id="lockpin" type="password" inputmode="numeric" autocomplete="off" maxlength="12" aria-label="PIN">
+    <p id="lockerr" class="mg-login-err" role="alert"></p>
+    <button class="btn primary" type="submit">Entsperren</button>
+  </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+/* MainGate – gemeinsamer Kern: Datenzugriff (Firebase oder Demo), Statuslogik, Hilfsfunktionen */
+(function (global) {
+  'use strict';
+
+  var FB = global.MAINGATE_FIREBASE || {};
+  var hasFirebaseConfig = !!(FB.apiKey && FB.databaseURL);
+
+  /* ---------- Standardwerte ---------- */
+  var DEFAULT_STATUSES = [
+    { id: 'free',    label: 'Herzlich willkommen', sub: 'Bitte eintreten',               color: '#1fa75a', icon: '✅' },
+    { id: 'knock',   label: 'Bitte klopfen',       sub: 'Ich bin da – kurz anklopfen',   color: '#2f7de1', icon: '✊' },
+    { id: 'busy',    label: 'Nicht stören',        sub: 'Nur in dringenden Fällen',      color: '#e0452f', icon: '🔕' },
+    { id: 'meeting', label: 'In einem Meeting',    sub: 'NICHT REINKOMMEN',              color: '#a8201a', icon: '⛔' },
+    { id: 'call',    label: 'Telefonat',           sub: 'Bitte einen Moment warten',     color: '#e8812a', icon: '📞' },
+    { id: 'back',    label: 'Bin gleich zurück',   sub: 'Bitte kurz warten',             color: '#d9a514', icon: '⏳' },
+    { id: 'away',    label: 'Nicht im Haus',       sub: 'Heute nicht erreichbar',        color: '#5b6b85', icon: '🏠' }
+  ];
+
+  var DEFAULT_CONFIG = {
+    name: 'Dein Name',
+    title: 'Deine Funktion',
+    room: 'Raum 1.01',
+    photo: '',
+    lang: 'de',
+    city: 'Frankfurt am Main',
+    lat: 50.1109,
+    lon: 8.6821,
+    statuses: DEFAULT_STATUSES,
+    defaultStatusId: 'knock',
+    calendarStatusId: 'meeting',
+    schedule: [],
+    messages: ['Bin in einem anderen Raum', 'Bitte Zettel hinterlassen', 'Pakete bitte am Empfang abgeben'],
+    showTitles: false,
+    night: { enabled: true, from: '22:00', to: '06:00', dim: 0.7 },
+    emergency: [
+      { label: 'Feuerwehr / Rettungsdienst', number: '112' },
+      { label: 'Polizei', number: '110' }
+    ],
+    qr: { label: 'Kontakt', text: '' },
+    pinHash: '',
+    lockMinutes: 5,
+    ms: { clientId: '', tenant: 'common' }
+  };
+
+  var DEFAULT_CURRENT = { mode: 'manual', statusId: 'knock', message: '', backUntil: 0, emergency: false, updatedAt: 0 };
+
+  /* ---------- kleine Helfer ---------- */
+  function clone(v) { return v === undefined ? null : JSON.parse(JSON.stringify(v)); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function uid() { return Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-3); }
+  function toArray(x) {
+    if (Array.isArray(x)) return x.filter(function (i) { return i != null; });
+    if (x && typeof x === 'object') return Object.keys(x).map(function (k) { return x[k]; });
+    return [];
+  }
+  function fmtHM(ms) { var d = new Date(ms); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function hhmm(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function isImageSrc(s) { return /^(data:image|https?:)/.test(s || ''); }
+  function iconHTML(icon) {
+    return isImageSrc(icon) ? '<img src="' + esc(icon) + '" alt="">' : esc(icon || '•');
+  }
+  function setIcon(el, icon) {
+    el.textContent = '';
+    if (isImageSrc(icon)) { var i = new Image(); i.alt = ''; i.src = icon; el.appendChild(i); }
+    else el.textContent = icon || '•';
+  }
+
+  function hexToRgb(hex) {
+    var h = String(hex || '#666').replace('#', '');
+    if (h.length === 3) h = h.split('').map(function (c) { return c + c; }).join('');
+    var n = parseInt(h, 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  function rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(function (v) { return pad2(Math.max(0, Math.min(255, Math.round(v)))); }).join('');
+  }
+  function pad2(n) { var s = n.toString(16); return s.length < 2 ? '0' + s : s; }
+  function shade(hex, amt) { // amt -1..1 (negativ = dunkler)
+    var c = hexToRgb(hex);
+    return amt < 0
+      ? rgbToHex(c[0] * (1 + amt), c[1] * (1 + amt), c[2] * (1 + amt))
+      : rgbToHex(c[0] + (255 - c[0]) * amt, c[1] + (255 - c[1]) * amt, c[2] + (255 - c[2]) * amt);
+  }
+  function readableText(hex) {
+    var c = hexToRgb(hex);
+    var l = (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255;
+    return l > 0.62 ? '#0a1424' : '#ffffff';
+  }
+
+  function resizeImage(file, max, mime, quality) {
+    return new Promise(function (resolve, reject) {
+      var fr = new FileReader();
+      fr.onerror = function () { reject(new Error('Datei konnte nicht gelesen werden')); };
+      fr.onload = function () {
+        var img = new Image();
+        img.onerror = function () { reject(new Error('Bild konnte nicht geöffnet werden')); };
+        img.onload = function () {
+          var s = Math.min(1, max / Math.max(img.width, img.height));
+          var w = Math.max(1, Math.round(img.width * s)), h = Math.max(1, Math.round(img.height * s));
+          var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+          var ctx = cv.getContext('2d');
+          if (mime === 'image/jpeg') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); }
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(cv.toDataURL(mime || 'image/png', quality || 0.85));
+        };
+        img.src = fr.result;
+      };
+      fr.readAsDataURL(file);
+    });
+  }
+
+  function simpleHash(str) {
+    var h = 5381; for (var i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0;
+    return 'x' + (h >>> 0).toString(16);
+  }
+  function sha256Hex(str) {
+    var salted = 'maingate:' + str;
+    if (!(global.crypto && global.crypto.subtle && global.TextEncoder)) return Promise.resolve(simpleHash(salted));
+    return global.crypto.subtle.digest('SHA-256', new TextEncoder().encode(salted)).then(function (buf) {
+      return Array.prototype.map.call(new Uint8Array(buf), function (b) { return pad2(b); }).join('');
+    });
+  }
+
+  /* ---------- Konfiguration zusammenführen ---------- */
+  function mergeConfig(v) {
+    var c = clone(DEFAULT_CONFIG);
+    if (!v || typeof v !== 'object') return c;
+    Object.keys(v).forEach(function (k) {
+      if (v[k] === null || v[k] === undefined) return;
+      if (k === 'night' || k === 'qr' || k === 'ms') c[k] = Object.assign({}, c[k], v[k]);
+      else c[k] = v[k];
+    });
+    c.statuses = toArray(v.statuses);
+    if (!c.statuses.length) c.statuses = clone(DEFAULT_STATUSES);
+    c.schedule = toArray(v.schedule);
+    c.messages = toArray(v.messages);
+    c.emergency = v.emergency === undefined ? clone(DEFAULT_CONFIG.emergency) : toArray(v.emergency);
+    c.lat = Number(c.lat); c.lon = Number(c.lon);
+    if (isNaN(c.lat)) c.lat = DEFAULT_CONFIG.lat;
+    if (isNaN(c.lon)) c.lon = DEFAULT_CONFIG.lon;
+    return c;
+  }
+  function mergeCurrent(v) { return Object.assign({}, DEFAULT_CURRENT, v && typeof v === 'object' ? v : {}); }
+
+  /* ---------- Termine ---------- */
+  function normEvents(own, ms) {
+    var out = [];
+    toArray(own).forEach(function (e) { push(e, 'own'); });
+    toArray(ms).forEach(function (e) { push(e, 'ms'); });
+    function push(e, src) {
+      var s = Number(e.start), n = Number(e.end);
+      if (!isFinite(s) || !isFinite(n)) return;
+      if (src === 'ms' && (e.showAs === 'free')) return;
+      out.push({ id: e.id || (src + s), title: e.title || '', start: s, end: n > s ? n : s + 3600000, allDay: !!e.allDay, src: src });
+    }
+    out.sort(function (a, b) { return a.start - b.start; });
+    return out;
+  }
+  function activeEvent(list, now) {
+    for (var i = 0; i < list.length; i++) {
+      var e = list[i];
+      if (!e.allDay && e.start <= now && now < e.end) return e;
+    }
+    return null;
+  }
+  function activeRule(rules, d) {
+    var t = hhmm(d), day = d.getDay();
+    for (var i = 0; i < rules.length; i++) {
+      var r = rules[i];
+      var days = toArray(r.days);
+      if (days.indexOf(day) === -1) continue;
+      if (r.from <= t && t < r.to) return r;
+    }
+    return null;
+  }
+
+  /* ---------- Was zeigt das Türschild gerade? ---------- */
+  function computeStatus(cfg, cur, events, now) {
+    var list = cfg.statuses;
+    function byId(id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
+    if (cur.emergency) return { kind: 'emergency' };
+    if (cur.mode === 'auto') {
+      var ev = activeEvent(events, now);
+      if (ev) return { kind: 'calendar', status: byId(cfg.calendarStatusId) || list[0], event: ev };
+      var rule = activeRule(cfg.schedule, new Date(now));
+      if (rule && byId(rule.statusId)) return { kind: 'schedule', status: byId(rule.statusId) };
+      return { kind: 'default', status: byId(cfg.defaultStatusId) || list[0] };
+    }
+    return { kind: 'manual', status: byId(cur.statusId) || byId(cfg.defaultStatusId) || list[0] };
+  }
+
+  function isNight(cfg, d) {
+    var n = cfg.night; if (!n || !n.enabled) return false;
+    var t = hhmm(d);
+    return n.from > n.to ? (t >= n.from || t < n.to) : (t >= n.from && t < n.to);
+  }
+
+  /* ---------- Wetter (Open-Meteo, ohne Schlüssel) ---------- */
+  function fetchWeather(lat, lon) {
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
+      '&current=temperature_2m,weather_code&timezone=auto';
+    return fetch(url).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (j) { return { temp: j.current.temperature_2m, code: j.current.weather_code }; });
+  }
+  function weatherEmoji(code) {
+    if (code === 0) return '☀️';
+    if (code <= 2) return '🌤️';
+    if (code === 3) return '☁️';
+    if (code === 45 || code === 48) return '🌫️';
+    if (code >= 51 && code <= 57) return '🌦️';
+    if (code >= 61 && code <= 67) return '🌧️';
+    if (code >= 71 && code <= 77) return '🌨️';
+    if (code >= 80 && code <= 82) return '🌧️';
+    if (code === 85 || code === 86) return '🌨️';
+    if (code >= 95) return '⛈️';
+    return '🌡️';
+  }
+
+  /* ---------- Daten: Firebase oder Demo ---------- */
+  function makeFirebaseDB() {
+    global.firebase.initializeApp(FB);
+    var root = global.firebase.database().ref('maingate');
+    return {
+      mode: 'firebase',
+      watch: function (key, cb) {
+        var r = root.child(key);
+        var h = r.on('value', function (s) { cb(s.val()); });
+        return function () { r.off('value', h); };
+      },
+      set: function (key, val) { return root.child(key).set(val === undefined ? null : clone(val)); }
+    };
+  }
+  function makeDemoDB() {
+    var KEY = 'maingate-demo', subs = {};
+    function load() { try { return JSON.parse(global.localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; } }
+    function emitTo(cb, key) { var s = load(); cb(s[key] === undefined ? null : s[key]); }
+    function emit(key) { (subs[key] || []).slice().forEach(function (cb) { emitTo(cb, key); }); }
+    global.addEventListener('storage', function (e) {
+      if (e.key === KEY) Object.keys(subs).forEach(emit);
+    });
+    return {
+      mode: 'demo',
+      watch: function (key, cb) {
+        (subs[key] = subs[key] || []).push(cb);
+        setTimeout(function () { emitTo(cb, key); }, 0);
+        return function () { subs[key] = subs[key].filter(function (x) { return x !== cb; }); };
+      },
+      set: function (key, val) {
+        var s = load();
+        if (val === null || val === undefined) delete s[key]; else s[key] = clone(val);
+        try { global.localStorage.setItem(KEY, JSON.stringify(s)); }
+        catch (e) { toast('Speicher voll – Foto oder Icons sind zu groß.'); }
+        emit(key);
+        return Promise.resolve();
+      }
+    };
+  }
+
+  /* ---------- Anmeldung (nur Firebase-Modus) ---------- */
+  var loginEl = null;
+  function showLogin(onSubmit) {
+    if (loginEl) { loginEl.hidden = false; return; }
+    loginEl = document.createElement('div');
+    loginEl.id = 'mg-login';
+    loginEl.innerHTML =
+      '<form class="mg-login-box" autocomplete="on">' +
+      '<div class="mg-brand">MainGate</div>' +
+      '<p class="mg-login-lead">Einmal anmelden – danach bleibt dieses Gerät angemeldet.</p>' +
+      '<label>E-Mail<input type="email" name="email" autocomplete="username" required></label>' +
+      '<label>Passwort<input type="password" name="password" autocomplete="current-password" required></label>' +
+      '<p class="mg-login-err" role="alert"></p>' +
+      '<button class="btn primary" type="submit">Anmelden</button>' +
+      '</form>';
+    document.body.appendChild(loginEl);
+    loginEl.querySelector('form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var f = e.target, err = loginEl.querySelector('.mg-login-err');
+      err.textContent = '';
+      onSubmit(f.email.value.trim(), f.password.value).catch(function (ex) {
+        var code = ex && ex.code || '';
+        err.textContent = /invalid|wrong|user-not-found|credential/.test(code)
+          ? 'E-Mail oder Passwort stimmt nicht.'
+          : /network/.test(code) ? 'Keine Verbindung zum Internet.'
+          : 'Anmeldung fehlgeschlagen (' + (code || 'unbekannt') + ').';
+      });
+    });
+  }
+  function hideLogin() { if (loginEl) loginEl.hidden = true; }
+
+  function banner(text, cls) {
+    var b = document.createElement('div');
+    b.className = 'mg-banner ' + (cls || '');
+    b.textContent = text;
+    document.body.appendChild(b);
+    return b;
+  }
+
+  var MG = { DB: null, mode: 'demo' };
+
+  function start() {
+    return new Promise(function (resolve) {
+      if (hasFirebaseConfig && !global.firebase) {
+        banner('Firebase konnte nicht geladen werden (offline?). Demo-Modus aktiv.', 'warn');
+      }
+      if (!(hasFirebaseConfig && global.firebase)) {
+        MG.DB = makeDemoDB(); MG.mode = 'demo';
+        if (!hasFirebaseConfig && !/preview=1/.test(location.search)) {
+          var b = banner('Demo-Modus – Daten bleiben auf diesem Gerät. Firebase eintragen: README, Schritt 2', 'demo');
+          setTimeout(function () { b.classList.add('hide'); }, 9000);
+        }
+        resolve(); return;
+      }
+      MG.DB = makeFirebaseDB(); MG.mode = 'firebase';
+      var auth = global.firebase.auth(), started = false;
+      auth.onAuthStateChanged(function (u) {
+        if (u) {
+          hideLogin();
+          if (!started) { started = true; resolve(); }
+        } else {
+          if (started) { location.reload(); return; }
+          showLogin(function (mail, pw) { return auth.signInWithEmailAndPassword(mail, pw); });
+        }
+      });
+    });
+  }
+  function logout() {
+    if (MG.mode === 'firebase') return global.firebase.auth().signOut().then(function () { location.reload(); });
+    location.reload();
+    return Promise.resolve();
+  }
+
+  /* ---------- Toast, Ton, Display wach halten ---------- */
+  var toastTimer = null;
+  function toast(msg) {
+    var t = document.getElementById('toast');
+    if (!t) { t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); }
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 3600);
+  }
+
+  var audioCtx = null;
+  function unlockAudio() {
+    try {
+      var AC = global.AudioContext || global.webkitAudioContext;
+      if (!audioCtx && AC) audioCtx = new AC();
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    } catch (e) { /* kein Ton möglich */ }
+  }
+  function beep() {
+    try {
+      if (!audioCtx) return;
+      [0, 0.28].forEach(function (off, i) {
+        var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = 'sine'; o.frequency.value = i ? 660 : 880;
+        g.gain.setValueAtTime(0.0001, audioCtx.currentTime + off);
+        g.gain.exponentialRampToValueAtTime(0.35, audioCtx.currentTime + off + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + off + 0.25);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(audioCtx.currentTime + off); o.stop(audioCtx.currentTime + off + 0.26);
+      });
+    } catch (e) { /* ignorieren */ }
+  }
+
+  function keepAwake() {
+    var lock = null;
+    function req() {
+      if (!('wakeLock' in navigator) || document.visibilityState !== 'visible') return;
+      navigator.wakeLock.request('screen').then(function (l) { lock = l; }).catch(function () { /* nicht verfügbar */ });
+    }
+    document.addEventListener('visibilitychange', req);
+    req();
+    return function () { if (lock) lock.release(); };
+  }
+
+  function qrSvg(text) {
+    if (!global.qrcode || !text) return '';
+    var q = global.qrcode(0, 'M'); q.addData(text); q.make();
+    return q.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+  }
+
+  /* ---------- Texte der Anzeige ---------- */
+  var STR = {
+    de: {
+      bell: 'Klingeln', sos: 'Notfall', qr: 'QR-Code', next: 'Nächste Termine', none: 'Keine Termine in den nächsten Tagen',
+      today: 'Heute', tomorrow: 'Morgen', now: 'jetzt', busy: 'Belegt', backIn: 'Zurück in', until: 'bis', allDay: 'ganztägig',
+      sosTitle: 'NOTFALL', sosSub: 'Bitte Ruhe bewahren – Hilfe wird geholt', sosHelp: 'Notfallnummern', bellSent: 'Danke – ich wurde benachrichtigt.',
+      outside: 'Außen', rotate: 'Bitte das iPad quer halten', close: 'Schließen', hint: 'Tipp: Teilen → „Zum Home-Bildschirm“ für den Vollbildmodus',
+      locale: 'de-DE'
+    },
+    en: {
+      bell: 'Ring bell', sos: 'Emergency', qr: 'QR code', next: 'Upcoming', none: 'No appointments in the next days',
+      today: 'Today', tomorrow: 'Tomorrow', now: 'now', busy: 'Busy', backIn: 'Back in', until: 'until', allDay: 'all day',
+      sosTitle: 'EMERGENCY', sosSub: 'Please stay calm – help is on the way', sosHelp: 'Emergency numbers', bellSent: 'Thanks – I have been notified.',
+      outside: 'Outside', rotate: 'Please hold the iPad in landscape', close: 'Close', hint: 'Tip: Share → “Add to Home Screen” for full screen',
+      locale: 'en-GB'
+    }
+  };
+
+  Object.assign(MG, {
+    DEFAULT_CONFIG: DEFAULT_CONFIG, DEFAULT_STATUSES: DEFAULT_STATUSES, DEFAULT_CURRENT: DEFAULT_CURRENT,
+    mergeConfig: mergeConfig, mergeCurrent: mergeCurrent, normEvents: normEvents, computeStatus: computeStatus,
+    activeEvent: activeEvent, isNight: isNight, fetchWeather: fetchWeather, weatherEmoji: weatherEmoji,
+    start: start, logout: logout, toast: toast, beep: beep, unlockAudio: unlockAudio, keepAwake: keepAwake,
+    qrSvg: qrSvg, STR: STR, esc: esc, uid: uid, pad: pad, toArray: toArray, clone: clone, fmtHM: fmtHM,
+    iconHTML: iconHTML, setIcon: setIcon, shade: shade, readableText: readableText,
+    resizeImage: resizeImage, sha256Hex: sha256Hex
+  });
+  global.MaingateCore = MG;
+})(window);
+
+</script>
+<script>
+/* MainGate – Dashboard (Steuer-iPad) */
+(function () {
+  'use strict';
+  var MG = window.MaingateCore;
+  var $ = function (id) { return document.getElementById(id); };
+  var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
+  var pageStart = Date.now();
+  var DAYS = [['Mo', 1], ['Di', 2], ['Mi', 3], ['Do', 4], ['Fr', 5], ['Sa', 6], ['So', 0]];
+
+  var S = {
+    config: MG.mergeConfig(null), current: MG.mergeCurrent(null),
+    own: [], ms: [], tab: 'home', unlocked: false, configLoaded: false,
+    lockTimer: null, lastBell: 0, msApp: null, msAccount: null, msTimer: null, msErr: ''
+  };
+
+  /* ---------- Schreiben ---------- */
+  function saveConfig(mutator) {
+    var c = MG.clone(S.config);
+    mutator(c);
+    S.config = c;
+    return MG.DB.set('config', c);
+  }
+  function setCurrent(patch) {
+    var n = Object.assign({}, S.current, patch, { updatedAt: Date.now() });
+    S.current = n;
+    return MG.DB.set('current', n);
+  }
+  function setPath(obj, path, val) {
+    var p = path.split('.'), o = obj;
+    for (var i = 0; i < p.length - 1; i++) { if (typeof o[p[i]] !== 'object' || o[p[i]] === null) o[p[i]] = {}; o = o[p[i]]; }
+    o[p[p.length - 1]] = val;
+  }
+  function getPath(obj, path) {
+    return path.split('.').reduce(function (o, k) { return o == null ? undefined : o[k]; }, obj);
+  }
+  function statusById(id) {
+    for (var i = 0; i < S.config.statuses.length; i++) if (S.config.statuses[i].id === id) return S.config.statuses[i];
+    return null;
+  }
+  function ownEvents() { return MG.toArray(S.own); }
+  function saveOwn(list) { S.own = list; return MG.DB.set('events', list.length ? list : null); }
+
+  /* ---------- Navigation ---------- */
+  function showTab(name) {
+    S.tab = name;
+    qa('.tab').forEach(function (t) { t.classList.toggle('on', t.id === 'tab-' + name); });
+    qa('.nav').forEach(function (n) { n.classList.toggle('on', n.dataset.tab === name); });
+    if (name === 'settings') fillSettings(true);
+    if (name === 'calendar') { renderEvents(); renderMs(); }
+    if (name === 'home') fitPreview();
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- Steuerung ---------- */
+  function renderHome() {
+    var c = S.config, cur = S.current, now = Date.now();
+    var res = MG.computeStatus(c, cur, MG.normEvents(S.own, S.ms), now);
+    var auto = cur.mode === 'auto';
+    document.body.classList.toggle('auto', auto);
+    $('modeManual').classList.toggle('on', !auto);
+    $('modeAuto').classList.toggle('on', auto);
+
+    var info = $('autoinfo');
+    if (auto && res.status) {
+      var why = res.kind === 'calendar' ? 'laufender Termin' : res.kind === 'schedule' ? 'Zeitplan' : 'Standardstatus';
+      info.textContent = 'Automatik aktiv – das Türschild zeigt gerade „' + res.status.label + '“ (' + why + '). Eine Kachel antippen, um auf Manuell zu wechseln.';
+      info.hidden = false;
+    } else info.hidden = true;
+
+    var html = '';
+    c.statuses.forEach(function (s) {
+      var on = res.status && res.status.id === s.id && res.kind !== 'emergency';
+      html += '<button type="button" class="tile' + (on ? ' on' : '') + '" data-id="' + MG.esc(s.id) + '" style="--c:' + MG.esc(s.color) +
+        ';--c2:' + MG.shade(s.color, -0.4) + ';--tc:' + MG.readableText(s.color) + '">' +
+        '<span class="ti">' + MG.iconHTML(s.icon) + '</span>' +
+        '<span><span class="tl">' + MG.esc(s.label) + '</span><br><span class="ts">' + MG.esc(s.sub || '') + '</span></span></button>';
+    });
+    $('tiles').innerHTML = html;
+
+    var hasBack = !!statusById('back');
+    $('backbox').hidden = !hasBack;
+    if (hasBack && !$('backchips').children.length) {
+      $('backchips').innerHTML = [5, 10, 15, 30, 60].map(function (m) {
+        return '<button type="button" class="chip" data-min="' + m + '">' + m + ' Min</button>';
+      }).join('');
+    }
+
+    var mc = '';
+    c.messages.forEach(function (m, i) { mc += '<button type="button" class="chip" data-i="' + i + '">' + MG.esc(m) + '</button>'; });
+    $('msgchips').innerHTML = mc;
+    $('msgchips').hidden = !c.messages.length;
+    if (document.activeElement !== $('msgtext')) $('msgtext').value = cur.message || '';
+
+    var sos = !!cur.emergency;
+    $('sostoggle').classList.toggle('on', sos);
+    $('sostoggle').textContent = sos ? 'Notfall-Anzeige ausschalten' : 'Notfall-Anzeige einschalten';
+  }
+
+  function wireHome() {
+    $('modeManual').addEventListener('click', function () { setCurrent({ mode: 'manual' }); renderHome(); });
+    $('modeAuto').addEventListener('click', function () { setCurrent({ mode: 'auto', emergency: false }); renderHome(); });
+
+    $('tiles').addEventListener('click', function (e) {
+      var t = e.target.closest('.tile'); if (!t) return;
+      setCurrent({ mode: 'manual', statusId: t.dataset.id, backUntil: 0, emergency: false });
+      renderHome();
+    });
+    $('backchips').addEventListener('click', function (e) {
+      var b = e.target.closest('.chip'); if (!b) return;
+      setCurrent({ mode: 'manual', statusId: 'back', backUntil: Date.now() + Number(b.dataset.min) * 60000, emergency: false });
+      MG.toast('Zurück in ' + b.dataset.min + ' Minuten – Countdown läuft.');
+      renderHome();
+    });
+    $('msgchips').addEventListener('click', function (e) {
+      var b = e.target.closest('.chip'); if (!b) return;
+      $('msgtext').value = S.config.messages[Number(b.dataset.i)] || '';
+      setCurrent({ message: $('msgtext').value }); renderHome();
+    });
+    $('msgsend').addEventListener('click', function () { setCurrent({ message: $('msgtext').value.trim() }); MG.toast('Nachricht wird angezeigt.'); });
+    $('msgtext').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('msgsend').click(); });
+    $('msgclear').addEventListener('click', function () { $('msgtext').value = ''; setCurrent({ message: '' }); renderHome(); });
+    $('sostoggle').addEventListener('click', function () { setCurrent({ emergency: !S.current.emergency }); renderHome(); });
+  }
+
+  function fitPreview() {
+    var wrap = document.querySelector('.pv-wrap'); if (!wrap || !wrap.clientWidth) return;
+    $('pv').style.transform = 'scale(' + (wrap.clientWidth / 1024) + ')';
+  }
+
+  /* ---------- Status verwalten ---------- */
+  function renderStatuses() {
+    var html = '';
+    var n = S.config.statuses.length;
+    S.config.statuses.forEach(function (s, i) {
+      html += '<div class="scard" data-i="' + i + '">' +
+        '<div class="sprev" style="--c:' + MG.esc(s.color) + ';--c2:' + MG.shade(s.color, -0.4) + ';--tc:' + MG.readableText(s.color) + '">' + MG.iconHTML(s.icon) + '</div>' +
+        '<div class="sfields">' +
+        '<label>Name<input type="text" data-f="label" value="' + MG.esc(s.label) + '"></label>' +
+        '<label>Untertitel<input type="text" data-f="sub" value="' + MG.esc(s.sub || '') + '"></label>' +
+        '<label>Farbe<input type="color" data-f="color" value="' + MG.esc(s.color) + '"></label>' +
+        '<label>Icon (Emoji)<input type="text" data-f="iconText" maxlength="8" value="' + (MG.iconHTML(s.icon).indexOf('<img') === 0 ? '' : MG.esc(s.icon || '')) + '" placeholder="z. B. 🔕"></label>' +
+        '<div class="sactions wide">' +
+        '<label class="btn small" for="up' + i + '">Eigenes Icon hochladen</label><input id="up' + i + '" data-f="iconFile" type="file" accept="image/*" hidden>' +
+        '<span class="grow"></span>' +
+        '<button type="button" class="btn small" data-act="up"' + (i === 0 ? ' disabled' : '') + ' aria-label="Nach oben">▲</button>' +
+        '<button type="button" class="btn small" data-act="down"' + (i === n - 1 ? ' disabled' : '') + ' aria-label="Nach unten">▼</button>' +
+        '<button type="button" class="btn small danger" data-act="del"' + (n <= 1 ? ' disabled' : '') + '>Löschen</button>' +
+        '</div></div></div>';
+    });
+    $('statuslist').innerHTML = html;
+  }
+
+  function wireStatuses() {
+    var list = $('statuslist');
+    function idx(el) { return Number(el.closest('.scard').dataset.i); }
+
+    list.addEventListener('change', function (e) {
+      var f = e.target.dataset.f; if (!f) return;
+      var i = idx(e.target);
+      if (f === 'iconFile') {
+        var file = e.target.files[0]; if (!file) return;
+        var big = file.type === 'image/svg+xml' ? 256 : 192;
+        MG.resizeImage(file, big, 'image/png').then(function (data) {
+          saveConfig(function (c) { c.statuses[i].icon = data; });
+          renderStatuses(); renderHome();
+        }).catch(function (err) { MG.toast(err.message); });
+        return;
+      }
+      saveConfig(function (c) {
+        var s = c.statuses[i];
+        if (f === 'iconText') { s.icon = e.target.value.trim(); }
+        else s[f] = e.target.value;
+        if (f === 'label' && !s.label.trim()) s.label = 'Status';
+      });
+      renderStatuses(); renderHome(); fillStatusSelects();
+    });
+
+    list.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-act]'); if (!b) return;
+      var i = idx(b), act = b.dataset.act;
+      if (act === 'del') {
+        var s = S.config.statuses[i];
+        if (!confirm('Status „' + s.label + '“ wirklich löschen?')) return;
+        saveConfig(function (c) {
+          c.statuses.splice(i, 1);
+          if (c.defaultStatusId === s.id) c.defaultStatusId = c.statuses[0].id;
+          if (c.calendarStatusId === s.id) c.calendarStatusId = c.statuses[0].id;
+          c.schedule.forEach(function (r) { if (r.statusId === s.id) r.statusId = c.statuses[0].id; });
+        });
+        if (S.current.statusId === s.id) setCurrent({ statusId: S.config.statuses[0].id });
+      } else {
+        var j = act === 'up' ? i - 1 : i + 1;
+        saveConfig(function (c) { var t = c.statuses[i]; c.statuses[i] = c.statuses[j]; c.statuses[j] = t; });
+      }
+      renderStatuses(); renderHome(); fillStatusSelects(); renderRules();
+    });
+
+    $('addstatus').addEventListener('click', function () {
+      saveConfig(function (c) { c.statuses.push({ id: MG.uid(), label: 'Neuer Status', sub: '', color: '#3b82f6', icon: '🙂' }); });
+      renderStatuses(); renderHome(); fillStatusSelects();
+      var cards = qa('.scard'); if (cards.length) cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }
+
+  function statusOptions(sel) {
+    return S.config.statuses.map(function (s) {
+      return '<option value="' + MG.esc(s.id) + '"' + (s.id === sel ? ' selected' : '') + '>' + MG.esc(s.label) + '</option>';
+    }).join('');
+  }
+  function fillStatusSelects() {
+    qa('select.statussel').forEach(function (sel) {
+      var k = sel.dataset.k, v = getPath(S.config, k);
+      sel.innerHTML = statusOptions(v);
+    });
+  }
+
+  /* ---------- Zeitplan ---------- */
+  function renderRules() {
+    var rules = S.config.schedule, html = '';
+    if (!rules.length) html = '<p class="hint">Noch keine Regel. Beispiel: Mo–Fr 08:00–17:00 „Bitte klopfen“ – außerhalb gilt der Standardstatus.</p>';
+    rules.forEach(function (r, i) {
+      var days = MG.toArray(r.days);
+      html += '<div class="rule" data-i="' + i + '"><div class="days">' +
+        DAYS.map(function (d) { return '<button type="button" class="chip' + (days.indexOf(d[1]) > -1 ? ' on' : '') + '" data-day="' + d[1] + '">' + d[0] + '</button>'; }).join('') +
+        '</div><div class="row2">' +
+        '<label>Von<input type="time" data-f="from" value="' + MG.esc(r.from) + '"></label>' +
+        '<label>Bis<input type="time" data-f="to" value="' + MG.esc(r.to) + '"></label>' +
+        '<label>Status<select data-f="statusId">' + statusOptions(r.statusId) + '</select></label>' +
+        '<button type="button" class="btn danger" data-act="del">Löschen</button></div></div>';
+    });
+    $('rulelist').innerHTML = html;
+  }
+
+  function wireRules() {
+    var list = $('rulelist');
+    function idx(el) { return Number(el.closest('.rule').dataset.i); }
+    list.addEventListener('click', function (e) {
+      var i, b = e.target.closest('[data-day]');
+      if (b) {
+        i = idx(b); var d = Number(b.dataset.day);
+        saveConfig(function (c) {
+          var days = MG.toArray(c.schedule[i].days), p = days.indexOf(d);
+          if (p > -1) days.splice(p, 1); else days.push(d);
+          c.schedule[i].days = days.length ? days : [d];
+        });
+        renderRules(); return;
+      }
+      b = e.target.closest('[data-act="del"]');
+      if (b) { i = idx(b); saveConfig(function (c) { c.schedule.splice(i, 1); }); renderRules(); }
+    });
+    list.addEventListener('change', function (e) {
+      var f = e.target.dataset.f; if (!f) return;
+      var i = idx(e.target), v = e.target.value;
+      saveConfig(function (c) { c.schedule[i][f] = v; });
+    });
+    $('addrule').addEventListener('click', function () {
+      var knock = statusById('knock') || S.config.statuses[0];
+      saveConfig(function (c) { c.schedule.push({ id: MG.uid(), days: [1, 2, 3, 4, 5], from: '08:00', to: '17:00', statusId: knock.id }); });
+      renderRules();
+    });
+  }
+
+  /* ---------- Termine ---------- */
+  function localInput(d) {
+    return d.getFullYear() + '-' + MG.pad(d.getMonth() + 1) + '-' + MG.pad(d.getDate()) + 'T' + MG.pad(d.getHours()) + ':' + MG.pad(d.getMinutes());
+  }
+  function fmtEvent(e) {
+    var s = new Date(e.start), d = s.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
+    return e.allDay ? d + ' · ganztägig' : d + ' · ' + MG.fmtHM(e.start) + '–' + MG.fmtHM(e.end);
+  }
+  function renderEvents() {
+    var now = Date.now(), list = MG.normEvents(S.own, S.ms).filter(function (e) { return e.end > now; }).slice(0, 40);
+    var html = '';
+    if (!list.length) html = '<li class="empty">Keine kommenden Termine.</li>';
+    list.forEach(function (e) {
+      html += '<li class="' + e.src + '"><div><div class="et">' + MG.esc(e.title || '(ohne Titel)') + '</div><div class="em">' + MG.esc(fmtEvent(e)) +
+        (e.src === 'ms' ? ' · Microsoft' : '') + '</div></div>' +
+        (e.src === 'own' ? '<button type="button" class="xbtn" data-id="' + MG.esc(e.id) + '" aria-label="Termin löschen">✕</button>' : '') + '</li>';
+    });
+    $('evlist').innerHTML = html;
+  }
+
+  function wireEvents() {
+    function defaults() {
+      var s = new Date(); s.setMinutes(0, 0, 0); s.setHours(s.getHours() + 1);
+      var e = new Date(s.getTime() + 3600000);
+      $('evstart').value = localInput(s); $('evend').value = localInput(e);
+    }
+    defaults();
+    $('evall').addEventListener('change', function () {
+      var t = $('evall').checked ? 'date' : 'datetime-local';
+      var s = $('evstart').value.slice(0, 10), e = $('evend').value.slice(0, 10);
+      $('evstart').type = t; $('evend').type = t;
+      $('evstart').value = t === 'date' ? s : s + 'T09:00';
+      $('evend').value = t === 'date' ? e : e + 'T10:00';
+    });
+    $('evform').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var all = $('evall').checked, start, end;
+      if (all) {
+        var a = $('evstart').value.split('-'), b = $('evend').value.split('-');
+        start = new Date(+a[0], +a[1] - 1, +a[2]).getTime();
+        end = new Date(+b[0], +b[1] - 1, +b[2] + 1).getTime();
+      } else { start = new Date($('evstart').value).getTime(); end = new Date($('evend').value).getTime(); }
+      if (!isFinite(start) || !isFinite(end) || end <= start) { MG.toast('Das Ende muss nach dem Beginn liegen.'); return; }
+      var list = ownEvents().concat([{ id: MG.uid(), title: $('evtitle').value.trim() || 'Termin', start: start, end: end, allDay: all }]);
+      saveOwn(list); $('evtitle').value = ''; renderEvents(); MG.toast('Termin gespeichert.');
+    });
+    $('evlist').addEventListener('click', function (e) {
+      var b = e.target.closest('.xbtn'); if (!b) return;
+      saveOwn(ownEvents().filter(function (x) { return x.id !== b.dataset.id; })); renderEvents();
+    });
+  }
+
+  /* ---------- Microsoft-Kalender (Microsoft Graph, nur Lesen) ---------- */
+  function msConfigured() { return !!(S.config.ms && S.config.ms.clientId); }
+
+  function msInit() {
+    S.msApp = null; S.msAccount = null;
+    if (!msConfigured()) return Promise.resolve();
+    if (!window.msal) { S.msErr = 'Microsoft-Bibliothek nicht geladen (offline?).'; return Promise.resolve(); }
+    var tenant = (S.config.ms.tenant || 'common').trim() || 'common';
+    try {
+      S.msApp = new window.msal.PublicClientApplication({
+        auth: {
+          clientId: S.config.ms.clientId.trim(),
+          authority: 'https://login.microsoftonline.com/' + tenant,
+          redirectUri: location.origin + location.pathname
+        },
+        cache: { cacheLocation: 'localStorage' }
+      });
+    } catch (e) { S.msErr = 'Microsoft-Anmeldung konnte nicht gestartet werden: ' + e.message; return Promise.resolve(); }
+    return S.msApp.handleRedirectPromise().then(function (r) {
+      var acc = (r && r.account) || S.msApp.getAllAccounts()[0] || null;
+      S.msAccount = acc;
+      if (acc) S.msApp.setActiveAccount(acc);
+      S.msErr = '';
+    }).catch(function (e) { S.msErr = 'Anmeldung fehlgeschlagen: ' + (e.errorMessage || e.message || e); });
+  }
+
+  function renderMs() {
+    var st = $('msstate'), con = $('msconnect'), syn = $('mssync'), dis = $('msdisconnect');
+    if (!msConfigured()) {
+      st.textContent = 'Noch nicht eingerichtet. Trage unter Einstellungen die Anwendungs-ID ein (README, Schritt 3). Bis dahin nutze den eigenen Kalender links.';
+      con.hidden = true; syn.hidden = true; dis.hidden = true; return;
+    }
+    if (S.msErr) st.textContent = S.msErr;
+    else if (S.msAccount) st.textContent = 'Verbunden als ' + S.msAccount.username + '. Abgleich alle 5 Minuten, solange dieses Dashboard offen ist.';
+    else st.textContent = 'Nicht verbunden. Du wirst zur Microsoft-Anmeldung weitergeleitet und danach hierher zurückgebracht.';
+    con.hidden = !!S.msAccount; syn.hidden = !S.msAccount; dis.hidden = !S.msAccount;
+  }
+
+  function msToken(interactive) {
+    var req = { scopes: ['Calendars.Read'], account: S.msAccount };
+    return S.msApp.acquireTokenSilent(req).catch(function (err) {
+      // Im Hintergrund nie weiterleiten (würde das Dashboard mitten in der Bedienung verlassen)
+      if (interactive) return S.msApp.acquireTokenRedirect(req);
+      S.msAccount = null; clearInterval(S.msTimer);
+      S.msErr = 'Die Microsoft-Anmeldung ist abgelaufen. Bitte erneut verbinden.';
+      throw err;
+    });
+  }
+
+  function parseGraph(dt, allDay) {
+    var p = String(dt.dateTime).split('.')[0];
+    if (allDay) { var m = p.slice(0, 10).split('-'); return new Date(+m[0], +m[1] - 1, +m[2]).getTime(); }
+    return new Date(p + 'Z').getTime();
+  }
+
+  function msSync(manual) {
+    if (!S.msApp || !S.msAccount) return Promise.resolve();
+    var from = new Date(Date.now() - 86400000).toISOString(), to = new Date(Date.now() + 45 * 86400000).toISOString();
+    return msToken(!!manual).then(function (tok) {
+      if (!tok || !tok.accessToken) return;
+      var url = 'https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=' + encodeURIComponent(from) +
+        '&endDateTime=' + encodeURIComponent(to) + '&$top=100&$orderby=' + encodeURIComponent('start/dateTime') +
+        '&$select=' + encodeURIComponent('id,subject,start,end,isAllDay,showAs,isCancelled');
+      return fetch(url, { headers: { Authorization: 'Bearer ' + tok.accessToken, Prefer: 'outlook.timezone="UTC"' } })
+        .then(function (r) { if (!r.ok) throw new Error('Microsoft Graph antwortet mit ' + r.status); return r.json(); })
+        .then(function (j) {
+          var list = (j.value || []).filter(function (e) { return !e.isCancelled; }).map(function (e) {
+            return { id: e.id, title: e.subject || '', start: parseGraph(e.start, e.isAllDay), end: parseGraph(e.end, e.isAllDay), allDay: !!e.isAllDay, showAs: e.showAs };
+          });
+          S.ms = list; S.msErr = '';
+          return MG.DB.set('msEvents', list.length ? list : null);
+        }).then(function () { if (manual) MG.toast('Microsoft-Kalender abgeglichen.'); renderEvents(); renderMs(); });
+    }).catch(function (e) {
+      if (S.msAccount) S.msErr = 'Abgleich fehlgeschlagen: ' + (e.errorMessage || e.message || e);
+      renderMs();
+    });
+  }
+
+  function startMsLoop() {
+    clearInterval(S.msTimer);
+    if (S.msAccount) { msSync(false); S.msTimer = setInterval(function () { msSync(false); }, 5 * 60 * 1000); }
+  }
+
+  function wireMs() {
+    $('msconnect').addEventListener('click', function () {
+      if (!S.msApp) { MG.toast('Erst die Anwendungs-ID in den Einstellungen eintragen.'); return; }
+      S.msApp.loginRedirect({ scopes: ['Calendars.Read'] });
+    });
+    $('mssync').addEventListener('click', function () { msSync(true); });
+    $('msdisconnect').addEventListener('click', function () {
+      var acc = S.msAccount; S.msAccount = null; clearInterval(S.msTimer);
+      MG.DB.set('msEvents', null); S.ms = [];
+      renderMs(); renderEvents();
+      if (acc && S.msApp) S.msApp.logoutRedirect({ account: acc, postLogoutRedirectUri: location.origin + location.pathname });
+    });
+  }
+
+  /* ---------- Einstellungen ---------- */
+  function fillSettings(force) {
+    var active = document.activeElement;
+    fillStatusSelects();
+    qa('[data-k]').forEach(function (el) {
+      if (el.tagName === 'SELECT' && el.classList.contains('statussel')) return;
+      if (!force && el === active) return;
+      var v = getPath(S.config, el.dataset.k);
+      if (el.type === 'checkbox') el.checked = !!v;
+      else el.value = v == null ? '' : v;
+    });
+    var ph = $('setphoto'); ph.textContent = '';
+    if (S.config.photo) { var i = new Image(); i.alt = ''; i.src = S.config.photo; ph.appendChild(i); }
+    else ph.textContent = (S.config.name || '?').charAt(0).toUpperCase();
+    $('photodel').hidden = !S.config.photo;
+    $('pinstate').textContent = S.config.pinHash
+      ? 'PIN ist gesetzt. Das Dashboard sperrt sich automatisch. Die PIN hält Passanten vom Dashboard fern, ersetzt aber keine Kontosicherheit.'
+      : 'Keine PIN gesetzt – jeder, der das iPad in der Hand hat, kann den Status ändern. Empfohlen: PIN setzen.';
+    renderListEditors();
+  }
+
+  function renderListEditors() {
+    var em = S.config.emergency, html = '';
+    em.forEach(function (e, i) {
+      html += '<div class="li" data-i="' + i + '"><input type="text" data-f="label" value="' + MG.esc(e.label) + '" placeholder="Bezeichnung" aria-label="Bezeichnung">' +
+        '<input class="num" type="text" inputmode="tel" data-f="number" value="' + MG.esc(e.number) + '" placeholder="Nummer" aria-label="Nummer">' +
+        '<button type="button" class="xbtn" data-act="del" aria-label="Entfernen">✕</button></div>';
+    });
+    if (document.activeElement.closest && !document.activeElement.closest('#emlist')) $('emlist').innerHTML = html;
+    else if (!$('emlist').children.length) $('emlist').innerHTML = html;
+
+    var mh = '';
+    S.config.messages.forEach(function (m, i) {
+      mh += '<div class="li" data-i="' + i + '"><input type="text" value="' + MG.esc(m) + '" maxlength="140" aria-label="Nachricht">' +
+        '<button type="button" class="xbtn" data-act="del" aria-label="Entfernen">✕</button></div>';
+    });
+    if (document.activeElement.closest && !document.activeElement.closest('#msglist')) $('msglist').innerHTML = mh;
+    else if (!$('msglist').children.length) $('msglist').innerHTML = mh;
+  }
+
+  function wireSettings() {
+    // einfache Felder
+    $('tab-settings').addEventListener('change', function (e) {
+      var el = e.target, k = el.dataset && el.dataset.k; if (!k) return;
+      var v;
+      if (el.type === 'checkbox') v = el.checked;
+      else if (el.type === 'number' || el.type === 'range') {
+        v = Number(el.value);
+        if (!isFinite(v)) return;
+        if (k === 'lockMinutes') v = Math.max(1, Math.min(120, Math.round(v)));
+      } else v = el.value;
+      saveConfig(function (c) { setPath(c, k, typeof v === 'string' && k !== 'qr.text' ? v.trim() : v); });
+      if (k.indexOf('ms.') === 0) { msInit().then(function () { renderMs(); startMsLoop(); }); }
+      renderHome(); renderLockTimer();
+    });
+
+    // Foto
+    $('photofile').addEventListener('change', function (e) {
+      var f = e.target.files[0]; if (!f) return;
+      MG.resizeImage(f, 480, 'image/jpeg', 0.84).then(function (d) {
+        saveConfig(function (c) { c.photo = d; }); fillSettings(true); MG.toast('Foto gespeichert.');
+      }).catch(function (err) { MG.toast(err.message); });
+      e.target.value = '';
+    });
+    $('photodel').addEventListener('click', function () { saveConfig(function (c) { c.photo = ''; }); fillSettings(true); });
+
+    // Notfallnummern
+    $('emlist').addEventListener('change', function (e) {
+      var f = e.target.dataset.f; if (!f) return;
+      var i = Number(e.target.closest('.li').dataset.i), v = e.target.value.trim();
+      saveConfig(function (c) { c.emergency[i][f] = v; });
+    });
+    $('emlist').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-act="del"]'); if (!b) return;
+      var i = Number(b.closest('.li').dataset.i);
+      saveConfig(function (c) { c.emergency.splice(i, 1); if (!c.emergency.length) c.emergency.push({ label: '', number: '' }); });
+      $('emlist').innerHTML = ''; renderListEditors();
+    });
+    $('addem').addEventListener('click', function () {
+      saveConfig(function (c) { c.emergency.push({ label: '', number: '' }); });
+      $('emlist').innerHTML = ''; renderListEditors();
+      var inp = $('emlist').querySelector('.li:last-child input'); if (inp) inp.focus();
+    });
+
+    // Schnellnachrichten
+    $('msglist').addEventListener('change', function (e) {
+      var i = Number(e.target.closest('.li').dataset.i), v = e.target.value.trim();
+      saveConfig(function (c) { if (v) c.messages[i] = v; else c.messages.splice(i, 1); });
+      $('msglist').innerHTML = ''; renderListEditors(); renderHome();
+    });
+    $('msglist').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-act="del"]'); if (!b) return;
+      var i = Number(b.closest('.li').dataset.i);
+      saveConfig(function (c) { c.messages.splice(i, 1); });
+      $('msglist').innerHTML = ''; renderListEditors(); renderHome();
+    });
+    $('addmsg').addEventListener('click', function () {
+      saveConfig(function (c) { c.messages.push('Neue Nachricht'); });
+      $('msglist').innerHTML = ''; renderListEditors(); renderHome();
+      var inp = $('msglist').querySelector('.li:last-child input'); if (inp) { inp.focus(); inp.select(); }
+    });
+
+    // PIN
+    $('pinset').addEventListener('click', function () {
+      var p = $('pinnew').value.trim();
+      if (!/^\d{4,12}$/.test(p)) { MG.toast('Die PIN braucht 4 bis 12 Ziffern.'); return; }
+      MG.sha256Hex(p).then(function (h) {
+        S.unlocked = true; // vor dem Speichern, sonst sperrt der Config-Listener sofort
+        saveConfig(function (c) { c.pinHash = h; });
+        $('pinnew').value = ''; fillSettings(true); renderLockTimer(); MG.toast('PIN gespeichert.');
+      });
+    });
+    $('pindel').addEventListener('click', function () {
+      if (!S.config.pinHash) return;
+      saveConfig(function (c) { c.pinHash = ''; }); fillSettings(true); renderLockTimer(); MG.toast('PIN entfernt.');
+    });
+
+    $('logout').addEventListener('click', function () { MG.logout(); });
+  }
+
+  /* ---------- Sperre ---------- */
+  function lockNow() {
+    if (!S.config.pinHash) return;
+    S.unlocked = false; $('lock').hidden = false; $('app').hidden = true;
+    $('lockpin').value = ''; $('lockerr').textContent = '';
+    setTimeout(function () { $('lockpin').focus(); }, 50);
+  }
+  function renderLockTimer() {
+    clearTimeout(S.lockTimer);
+    $('lockbtn').hidden = !S.config.pinHash;
+    if (!S.config.pinHash || !S.unlocked) return;
+    S.lockTimer = setTimeout(lockNow, (Number(S.config.lockMinutes) || 5) * 60000);
+  }
+  function wireLock() {
+    $('lockform').addEventListener('submit', function (e) {
+      e.preventDefault();
+      MG.sha256Hex($('lockpin').value.trim()).then(function (h) {
+        if (h === S.config.pinHash) {
+          S.unlocked = true; $('lock').hidden = true; $('app').hidden = false; fitPreview(); renderLockTimer();
+        } else { $('lockerr').textContent = 'Falsche PIN.'; $('lockpin').value = ''; }
+      });
+    });
+    $('lockbtn').addEventListener('click', lockNow);
+    ['pointerdown', 'keydown'].forEach(function (ev) { document.addEventListener(ev, function () { MG.unlockAudio(); if (S.unlocked) renderLockTimer(); }, true); });
+  }
+
+  /* ---------- Türklingel ---------- */
+  function onDoorbell(v) {
+    if (!v || !v.ts || v.ts <= pageStart || v.ts <= S.lastBell) return;
+    S.lastBell = v.ts;
+    $('bell').hidden = false;
+    MG.beep();
+    if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+  }
+
+  /* ---------- Start ---------- */
+  function gate() {
+    if (!S.configLoaded) return;
+    if (S.config.pinHash && !S.unlocked) { lockNow(); return; }
+    $('app').hidden = false; $('lock').hidden = true;
+    if (S.config.pinHash) renderLockTimer(); else $('lockbtn').hidden = true;
+  }
+
+  wireHome(); wireStatuses(); wireRules(); wireEvents(); wireMs(); wireSettings(); wireLock();
+  qa('.nav').forEach(function (n) { n.addEventListener('click', function () { showTab(n.dataset.tab); }); });
+  $('bellok').addEventListener('click', function () { $('bell').hidden = true; });
+  window.addEventListener('resize', fitPreview);
+
+  MG.start().then(function () {
+    var DB = MG.DB, first = true;
+    DB.watch('config', function (v) {
+      var hadPin = S.config.pinHash;
+      var isNew = (v === null || v === undefined);
+      S.config = MG.mergeConfig(v);
+      if (first) {
+        first = false; S.configLoaded = true;
+        if (isNew) DB.set('config', S.config); // erste Konfiguration anlegen
+        msInit().then(function () { renderMs(); startMsLoop(); });
+      }
+      if (hadPin && !S.config.pinHash) S.unlocked = true;
+      gate();
+      renderHome(); renderStatuses(); renderRules();
+      if (S.tab === 'settings') fillSettings(false);
+      if (S.tab === 'calendar') renderMs();
+      setTimeout(fitPreview, 30);
+    });
+    DB.watch('current', function (v) { S.current = MG.mergeCurrent(v); renderHome(); });
+    DB.watch('events', function (v) { S.own = MG.toArray(v); renderHome(); if (S.tab === 'calendar') renderEvents(); });
+    DB.watch('msEvents', function (v) { S.ms = MG.toArray(v); renderHome(); if (S.tab === 'calendar') renderEvents(); });
+    DB.watch('doorbell', onDoorbell);
+
+    setInterval(function () {
+      var d = new Date();
+      $('railclock').textContent = MG.pad(d.getHours()) + ':' + MG.pad(d.getMinutes());
+      // abgelaufenen "Zurück in"-Timer zurücksetzen
+      var c = S.current;
+      if (c.statusId === 'back' && c.backUntil && c.backUntil < Date.now() - 2000 && c.mode === 'manual') {
+        setCurrent({ backUntil: 0 });
+      }
+    }, 1000);
+    MG.keepAwake();
+  });
+})();
+
+</script>
+</body>
+</html>

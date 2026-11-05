@@ -1,0 +1,1006 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MainGate Türschild">
+<meta name="theme-color" content="#08111f">
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<title>MainGate · Türschild</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<style>
+/* MainGate – Grundstil (Display, Dashboard, Startseite) */
+:root {
+  --ink: #08111f;
+  --ink-2: #0d1a2e;
+  --ink-3: #14243d;
+  --line: rgba(190, 210, 245, .14);
+  --text: #eef3fb;
+  --muted: #8da2c3;
+  --glow: #ffb547;          /* Fensterlicht der Skyline */
+  --ok: #3ddc84;
+  --danger: #ff5a45;
+  --radius: 14px;
+  --font: "Archivo", "Avenir Next", "Helvetica Neue", system-ui, -apple-system, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--ink);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--glow); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5em;
+  min-height: 44px; padding: 0 1.1em;
+  background: rgba(255, 255, 255, .08); border: 1px solid var(--line); border-radius: 10px;
+  font-weight: 600; letter-spacing: .01em; user-select: none; -webkit-user-select: none;
+  transition: background .15s, transform .08s;
+}
+.btn:active { transform: scale(.97); }
+.btn:hover { background: rgba(255, 255, 255, .14); }
+.btn.primary { background: var(--glow); border-color: transparent; color: #1a1205; }
+.btn.primary:hover { background: #ffc46e; }
+.btn.danger { background: #c92f1d; border-color: transparent; color: #fff; }
+.btn.danger:hover { background: #e2402c; }
+.btn.ghost { background: transparent; }
+.btn.small { min-height: 36px; padding: 0 .8em; font-size: .9rem; }
+.btn[disabled] { opacity: .4; pointer-events: none; }
+
+/* Formularfelder */
+input[type=text], input[type=email], input[type=password], input[type=number], input[type=time],
+input[type=datetime-local], select, textarea {
+  width: 100%; min-height: 44px; padding: .55em .75em;
+  background: rgba(0, 0, 0, .28); border: 1px solid var(--line); border-radius: 10px;
+}
+input[type=color] { width: 56px; height: 44px; padding: 3px; background: rgba(0,0,0,.28); border: 1px solid var(--line); border-radius: 10px; }
+input[type=range] { width: 100%; accent-color: var(--glow); }
+input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--glow); }
+textarea { min-height: 96px; resize: vertical; }
+select option { background: var(--ink-2); }
+
+/* Anmeldung */
+#mg-login {
+  position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 24px;
+  background: radial-gradient(120% 90% at 50% 100%, #17305a 0%, var(--ink) 62%);
+}
+.mg-login-box {
+  width: min(420px, 100%); display: grid; gap: 14px; padding: 28px;
+  background: rgba(13, 26, 46, .85); border: 1px solid var(--line); border-radius: 18px;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.mg-login-box label { display: grid; gap: 6px; font-size: .9rem; color: var(--muted); }
+.mg-brand { font-size: 1.9rem; font-weight: 800; font-stretch: 85%; letter-spacing: .02em; }
+.mg-login-lead { color: var(--muted); font-size: .95rem; }
+.mg-login-err { min-height: 1.3em; color: var(--danger); font-size: .9rem; }
+
+/* Hinweise */
+.mg-banner {
+  position: fixed; left: 50%; bottom: max(70px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+  z-index: 900; max-width: min(92vw, 640px); padding: 10px 16px; border-radius: 10px;
+  background: rgba(20, 36, 61, .96); border: 1px solid var(--line); font-size: .9rem;
+  transition: opacity .5s;
+}
+.mg-banner.warn { background: #6b2a14; }
+.mg-banner.hide { opacity: 0; pointer-events: none; }
+#toast {
+  position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); z-index: 950;
+  transform: translate(-50%, 24px); opacity: 0; pointer-events: none;
+  padding: 12px 20px; border-radius: 12px; background: rgba(8, 17, 31, .96);
+  border: 1px solid var(--line); font-weight: 600; max-width: 90vw; text-align: center;
+  transition: opacity .25s, transform .25s;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* MainGate – Türschild (Querformat, iPad) */
+html, body.display { height: 100%; overflow: hidden; }
+body.display {
+  height: 100vh; height: 100dvh;
+  background: var(--ink);
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+
+#stage {
+  --c: #2f7de1; --c2: #1b4a8d; --tc: #fff;
+  position: relative; height: 100%;
+  display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+  padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right);
+}
+
+/* ---------- Statusfläche ---------- */
+#status {
+  position: relative; overflow: hidden; color: var(--tc);
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 4.2vh 3.4vw 4vh; padding-top: max(4.2vh, env(safe-area-inset-top));
+  background: linear-gradient(165deg, var(--c) 0%, var(--c2) 100%);
+  transition: background .5s;
+}
+#status::before { /* Frankfurter Skyline, hell auf Farbfläche */
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 52%;
+  background: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1600 360%22 preserveAspectRatio=%22xMidYMax slice%22%3E%3Cg fill=%22%23ffffff%22%3E%3Crect x=%220%22 y=%22295%22 width=%2254%22 height=%2265%22/%3E%3Crect x=%2254%22 y=%22246%22 width=%2238%22 height=%22114%22/%3E%3Crect x=%2260%22 y=%22238%22 width=%2226%22 height=%228%22/%3E%3Crect x=%2292%22 y=%22287%22 width=%2266%22 height=%2273%22/%3E%3Crect x=%2298%22 y=%22279%22 width=%2254%22 height=%228%22/%3E%3Crect x=%22164%22 y=%22306%22 width=%2260%22 height=%2254%22/%3E%3Crect x=%22170%22 y=%22298%22 width=%2248%22 height=%228%22/%3E%3Crect x=%22232%22 y=%22307%22 width=%2261%22 height=%2253%22/%3E%3Crect x=%22294%22 y=%22234%22 width=%2248%22 height=%22126%22/%3E%3Crect x=%22342%22 y=%22240%22 width=%2270%22 height=%22120%22/%3E%3Crect x=%22415%22 y=%22243%22 width=%2236%22 height=%22117%22/%3E%3Crect x=%22455%22 y=%22296%22 width=%2260%22 height=%2264%22/%3E%3Crect x=%22519%22 y=%22291%22 width=%2269%22 height=%2269%22/%3E%3Crect x=%22525%22 y=%22283%22 width=%2257%22 height=%228%22/%3E%3Crect x=%22591%22 y=%22302%22 width=%2257%22 height=%2258%22/%3E%3Crect x=%22649%22 y=%22307%22 width=%2270%22 height=%2253%22/%3E%3Crect x=%22726%22 y=%22246%22 width=%2277%22 height=%22114%22/%3E%3Crect x=%22808%22 y=%22240%22 width=%2263%22 height=%22120%22/%3E%3Crect x=%22876%22 y=%22283%22 width=%2253%22 height=%2277%22/%3E%3Crect x=%22932%22 y=%22241%22 width=%2239%22 height=%22119%22/%3E%3Crect x=%22938%22 y=%22233%22 width=%2227%22 height=%228%22/%3E%3Crect x=%22978%22 y=%22257%22 width=%2255%22 height=%22103%22/%3E%3Crect x=%22984%22 y=%22249%22 width=%2243%22 height=%228%22/%3E%3Crect x=%221034%22 y=%22249%22 width=%2241%22 height=%22111%22/%3E%3Crect x=%221080%22 y=%22252%22 width=%2243%22 height=%22108%22/%3E%3Crect x=%221124%22 y=%22241%22 width=%2269%22 height=%22119%22/%3E%3Crect x=%221198%22 y=%22270%22 width=%2255%22 height=%2290%22/%3E%3Crect x=%221260%22 y=%22303%22 width=%2238%22 height=%2257%22/%3E%3Crect x=%221305%22 y=%22306%22 width=%2278%22 height=%2254%22/%3E%3Crect x=%221311%22 y=%22298%22 width=%2266%22 height=%228%22/%3E%3Crect x=%221387%22 y=%22241%22 width=%2275%22 height=%22119%22/%3E%3Crect x=%221469%22 y=%22265%22 width=%2252%22 height=%2295%22/%3E%3Crect x=%221526%22 y=%22255%22 width=%2235%22 height=%22105%22/%3E%3Crect x=%221562%22 y=%22307%22 width=%2265%22 height=%2253%22/%3E%3Crect x=%221568%22 y=%22299%22 width=%2253%22 height=%228%22/%3E%3Cpolygon points=%22170,360 170,112 202,48 234,112 234,360%22/%3E%3Crect x=%22201%22 y=%2228%22 width=%222%22 height=%2222%22/%3E%3Cpolygon points=%22300,360 300,185 346,152 346,360%22/%3E%3Cpolygon points=%22420,360 420,72 436,60 466,60 482,72 482,360%22/%3E%3Crect x=%22449%22 y=%228%22 width=%224%22 height=%2254%22/%3E%3Cpolygon points=%22560,360 560,160 604,150 604,360%22/%3E%3Cpolygon points=%22612,360 612,152 656,164 656,360%22/%3E%3Cpolygon points=%22720,360 720,135 733,125 741,140 748,125 756,140 763,125 776,135 776,360%22/%3E%3Cpolygon points=%22840,360 840,150 900,140 900,360%22/%3E%3Crect x=%22980%22 y=%22135%22 width=%2258%22 height=%22225%22/%3E%3Crect x=%22986%22 y=%22118%22 width=%2246%22 height=%2218%22/%3E%3Cpolygon points=%22998,118 1006,100 1012,100 1020,118%22/%3E%3Crect x=%221007%22 y=%2236%22 width=%224%22 height=%2266%22/%3E%3Cpolygon points=%221110,360 1110,150 1126,135 1146,135 1162,150 1162,360%22/%3E%3Crect x=%221190%22 y=%22175%22 width=%2240%22 height=%22185%22/%3E%3Crect x=%221197%22 y=%22165%22 width=%2226%22 height=%2210%22/%3E%3Cpolygon points=%221260,360 1260,190 1304,172 1304,360%22/%3E%3Crect x=%221320%22 y=%22210%22 width=%2270%22 height=%22150%22/%3E%3C/g%3E%3C/svg%3E") center bottom / cover no-repeat;
+  opacity: .17; pointer-events: none;
+}
+#status > * { position: relative; }
+#roomtag {
+  font-size: clamp(16px, 2.6vh, 26px); font-weight: 700; font-stretch: 80%; letter-spacing: .04em;
+  opacity: .85;
+}
+#sbody { display: flex; flex-direction: column; align-items: flex-start; gap: 1.6vh; min-height: 0; }
+#sicon { font-size: clamp(64px, 17vh, 170px); line-height: 1; height: clamp(64px, 17vh, 170px); }
+#sicon img { height: 100%; width: auto; max-width: 100%; object-fit: contain; display: block; }
+#slabel {
+  font-weight: 900; font-stretch: 70%; line-height: .94; letter-spacing: -.01em;
+  font-size: clamp(48px, 10.5vw, 150px); text-wrap: balance; overflow-wrap: anywhere;
+  max-width: 100%;
+}
+#ssub {
+  font-weight: 700; font-stretch: 85%; font-size: clamp(22px, 4.2vh, 46px); line-height: 1.12;
+  max-width: 100%;
+}
+#stimer {
+  margin-top: .6vh; font-weight: 800; font-stretch: 75%; font-variant-numeric: tabular-nums;
+  font-size: clamp(30px, 6.4vh, 70px); padding: .1em .55em; border-radius: 999px;
+  background: rgba(0, 0, 0, .22);
+}
+#smsg {
+  align-self: stretch; padding: 1.8vh 1.6vw; border-radius: 14px;
+  background: rgba(0, 0, 0, .26); font-size: clamp(18px, 3.2vh, 32px); font-weight: 600; line-height: 1.25;
+}
+#stage.sos #status { animation: sospulse 1.6s ease-in-out infinite; }
+@keyframes sospulse { 50% { filter: brightness(1.28); } }
+
+/* ---------- Seitenleiste ---------- */
+#side {
+  position: relative; display: flex; flex-direction: column; gap: 1.8vh; min-height: 0;
+  padding: 3vh 2vw 2.4vh; padding-top: max(3vh, env(safe-area-inset-top));
+  padding-bottom: max(2.4vh, env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, #0a1426 0%, #0c1b33 100%);
+  overflow: hidden;
+}
+#side::before {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 46%;
+  background: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1600 360%22 preserveAspectRatio=%22xMidYMax slice%22%3E%3Cg fill=%22%23ffffff%22%3E%3Crect x=%220%22 y=%22295%22 width=%2254%22 height=%2265%22/%3E%3Crect x=%2254%22 y=%22246%22 width=%2238%22 height=%22114%22/%3E%3Crect x=%2260%22 y=%22238%22 width=%2226%22 height=%228%22/%3E%3Crect x=%2292%22 y=%22287%22 width=%2266%22 height=%2273%22/%3E%3Crect x=%2298%22 y=%22279%22 width=%2254%22 height=%228%22/%3E%3Crect x=%22164%22 y=%22306%22 width=%2260%22 height=%2254%22/%3E%3Crect x=%22170%22 y=%22298%22 width=%2248%22 height=%228%22/%3E%3Crect x=%22232%22 y=%22307%22 width=%2261%22 height=%2253%22/%3E%3Crect x=%22294%22 y=%22234%22 width=%2248%22 height=%22126%22/%3E%3Crect x=%22342%22 y=%22240%22 width=%2270%22 height=%22120%22/%3E%3Crect x=%22415%22 y=%22243%22 width=%2236%22 height=%22117%22/%3E%3Crect x=%22455%22 y=%22296%22 width=%2260%22 height=%2264%22/%3E%3Crect x=%22519%22 y=%22291%22 width=%2269%22 height=%2269%22/%3E%3Crect x=%22525%22 y=%22283%22 width=%2257%22 height=%228%22/%3E%3Crect x=%22591%22 y=%22302%22 width=%2257%22 height=%2258%22/%3E%3Crect x=%22649%22 y=%22307%22 width=%2270%22 height=%2253%22/%3E%3Crect x=%22726%22 y=%22246%22 width=%2277%22 height=%22114%22/%3E%3Crect x=%22808%22 y=%22240%22 width=%2263%22 height=%22120%22/%3E%3Crect x=%22876%22 y=%22283%22 width=%2253%22 height=%2277%22/%3E%3Crect x=%22932%22 y=%22241%22 width=%2239%22 height=%22119%22/%3E%3Crect x=%22938%22 y=%22233%22 width=%2227%22 height=%228%22/%3E%3Crect x=%22978%22 y=%22257%22 width=%2255%22 height=%22103%22/%3E%3Crect x=%22984%22 y=%22249%22 width=%2243%22 height=%228%22/%3E%3Crect x=%221034%22 y=%22249%22 width=%2241%22 height=%22111%22/%3E%3Crect x=%221080%22 y=%22252%22 width=%2243%22 height=%22108%22/%3E%3Crect x=%221124%22 y=%22241%22 width=%2269%22 height=%22119%22/%3E%3Crect x=%221198%22 y=%22270%22 width=%2255%22 height=%2290%22/%3E%3Crect x=%221260%22 y=%22303%22 width=%2238%22 height=%2257%22/%3E%3Crect x=%221305%22 y=%22306%22 width=%2278%22 height=%2254%22/%3E%3Crect x=%221311%22 y=%22298%22 width=%2266%22 height=%228%22/%3E%3Crect x=%221387%22 y=%22241%22 width=%2275%22 height=%22119%22/%3E%3Crect x=%221469%22 y=%22265%22 width=%2252%22 height=%2295%22/%3E%3Crect x=%221526%22 y=%22255%22 width=%2235%22 height=%22105%22/%3E%3Crect x=%221562%22 y=%22307%22 width=%2265%22 height=%2253%22/%3E%3Crect x=%221568%22 y=%22299%22 width=%2253%22 height=%228%22/%3E%3Cpolygon points=%22170,360 170,112 202,48 234,112 234,360%22/%3E%3Crect x=%22201%22 y=%2228%22 width=%222%22 height=%2222%22/%3E%3Cpolygon points=%22300,360 300,185 346,152 346,360%22/%3E%3Cpolygon points=%22420,360 420,72 436,60 466,60 482,72 482,360%22/%3E%3Crect x=%22449%22 y=%228%22 width=%224%22 height=%2254%22/%3E%3Cpolygon points=%22560,360 560,160 604,150 604,360%22/%3E%3Cpolygon points=%22612,360 612,152 656,164 656,360%22/%3E%3Cpolygon points=%22720,360 720,135 733,125 741,140 748,125 756,140 763,125 776,135 776,360%22/%3E%3Cpolygon points=%22840,360 840,150 900,140 900,360%22/%3E%3Crect x=%22980%22 y=%22135%22 width=%2258%22 height=%22225%22/%3E%3Crect x=%22986%22 y=%22118%22 width=%2246%22 height=%2218%22/%3E%3Cpolygon points=%22998,118 1006,100 1012,100 1020,118%22/%3E%3Crect x=%221007%22 y=%2236%22 width=%224%22 height=%2266%22/%3E%3Cpolygon points=%221110,360 1110,150 1126,135 1146,135 1162,150 1162,360%22/%3E%3Crect x=%221190%22 y=%22175%22 width=%2240%22 height=%22185%22/%3E%3Crect x=%221197%22 y=%22165%22 width=%2226%22 height=%2210%22/%3E%3Cpolygon points=%221260,360 1260,190 1304,172 1304,360%22/%3E%3Crect x=%221320%22 y=%22210%22 width=%2270%22 height=%22150%22/%3E%3C/g%3E%3C/svg%3E") center bottom / cover no-repeat;
+  opacity: .07; pointer-events: none;
+}
+#side > * { position: relative; }
+
+#person { display: flex; align-items: center; gap: 1.2vw; }
+#photo {
+  flex: 0 0 auto; width: clamp(64px, 12.5vh, 112px); height: clamp(64px, 12.5vh, 112px);
+  border-radius: 50%; overflow: hidden; display: grid; place-items: center;
+  background: var(--ink-3); border: 3px solid var(--c); box-shadow: 0 0 0 4px rgba(255, 255, 255, .06);
+  font-weight: 800; font-size: clamp(24px, 4.6vh, 42px); color: var(--muted); transition: border-color .5s;
+}
+#photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#pname { font-weight: 800; font-size: clamp(20px, 3.6vh, 34px); line-height: 1.1; }
+#ptitle { color: var(--muted); font-size: clamp(14px, 2.2vh, 20px); margin-top: .3vh; }
+
+#clockrow { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+#clock {
+  font-weight: 800; font-stretch: 80%; font-variant-numeric: tabular-nums; line-height: .95;
+  font-size: clamp(40px, 8.4vh, 84px); letter-spacing: -.01em;
+}
+#date { color: var(--muted); font-size: clamp(13px, 2.1vh, 19px); margin-top: .6vh; }
+#weather {
+  display: flex; align-items: center; gap: .4em; padding: .35em .7em; border-radius: 12px;
+  background: rgba(255, 255, 255, .07); font-weight: 700; font-size: clamp(18px, 3.2vh, 30px);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+
+#calwrap { background: rgba(255, 255, 255, .05); border: 1px solid var(--line); border-radius: 14px; padding: 1.2vh 1vw 1.1vh; }
+#calhead { font-weight: 700; font-size: clamp(13px, 2vh, 18px); margin-bottom: .6vh; }
+#calgrid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center;
+  font-size: clamp(10px, 1.7vh, 15px); font-variant-numeric: tabular-nums;
+}
+#calgrid .dow { color: var(--muted); font-weight: 600; }
+#calgrid .d {
+  position: relative; display: grid; place-items: center; height: clamp(18px, 3.2vh, 30px);
+  border-radius: 7px; color: #cfdbef;
+}
+#calgrid .d.out { color: #4c5f80; }
+#calgrid .d.today { background: var(--glow); color: #1a1205; font-weight: 800; }
+#calgrid .d.has::after {
+  content: ""; position: absolute; bottom: 2px; left: 50%; width: 4px; height: 4px; margin-left: -2px;
+  border-radius: 50%; background: var(--glow);
+}
+#calgrid .d.today.has::after { background: #1a1205; }
+
+#next { flex: 1 1 0; min-height: 0; overflow: hidden; }
+#nexth { font-weight: 700; font-size: clamp(13px, 2vh, 18px); margin-bottom: .8vh; color: var(--muted); }
+#nextlist { list-style: none; display: grid; gap: .9vh; }
+#nextlist li {
+  display: grid; grid-template-columns: auto 1fr; gap: 0 .9em; align-items: baseline;
+  padding: .8vh .9vw; border-radius: 10px; background: rgba(255, 255, 255, .05);
+  border-left: 4px solid var(--glow); font-size: clamp(13px, 2.1vh, 19px);
+}
+#nextlist li.now { background: rgba(255, 181, 71, .16); }
+#nextlist .t { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#nextlist .w { color: var(--muted); font-size: .86em; text-align: right; }
+#nextlist .n { grid-column: 1 / -1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#nextlist li.empty { border-left-color: transparent; color: var(--muted); }
+
+#actions { display: flex; gap: 1vw; }
+.act {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: .5em;
+  min-height: clamp(46px, 7.2vh, 66px); border-radius: 14px; border: 1px solid var(--line);
+  background: rgba(255, 255, 255, .09); font-weight: 700; font-size: clamp(14px, 2.3vh, 21px);
+  transition: transform .08s, background .15s;
+}
+.act:active { transform: scale(.96); background: rgba(255, 255, 255, .2); }
+.act .ai { font-size: 1.15em; }
+.act.sos { background: rgba(214, 48, 30, .28); border-color: rgba(255, 120, 100, .5); }
+
+/* ---------- Overlay (Notfall, QR) ---------- */
+#overlay {
+  position: fixed; inset: 0; z-index: 500; display: grid; place-items: center; padding: 4vh 4vw;
+  background: rgba(4, 9, 18, .84); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+#ovbox {
+  width: min(760px, 100%); max-height: 100%; overflow: auto; padding: 4vh 3vw; text-align: center;
+  background: var(--ink-2); border: 1px solid var(--line); border-radius: 22px;
+}
+#ovbox h2 { font-size: clamp(28px, 6vh, 56px); font-weight: 900; font-stretch: 75%; margin-bottom: 2vh; }
+#ovbox .list { display: grid; gap: 1.2vh; text-align: left; margin-bottom: 2.4vh; }
+#ovbox .row {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+  padding: 1.6vh 1.4vw; border-radius: 12px; background: rgba(255, 255, 255, .06);
+  font-size: clamp(16px, 3vh, 28px);
+}
+#ovbox .row b { font-size: 1.5em; font-stretch: 80%; font-variant-numeric: tabular-nums; color: var(--glow); }
+#ovbox .qr { width: min(46vh, 70%); margin: 0 auto 2vh; padding: 14px; background: #fff; border-radius: 16px; }
+#ovbox .qr svg { display: block; width: 100%; height: auto; }
+#ovbox .cap { font-size: clamp(16px, 2.8vh, 26px); margin-bottom: 2vh; color: var(--muted); }
+
+#night { position: fixed; inset: 0; z-index: 400; background: #000; opacity: 0; pointer-events: none; transition: opacity 2s; }
+
+#rotate {
+  display: none; position: fixed; inset: 0; z-index: 800; place-items: center; text-align: center; padding: 24px;
+  background: var(--ink); font-size: 24px; font-weight: 700;
+}
+@media (orientation: portrait) { #rotate { display: grid; } }
+
+body.preview #actions .act { pointer-events: none; }
+body.preview #night { display: none; }
+
+/* schmale Fenster (z. B. Vorschau-Rahmen im Dashboard bleibt 1024 breit; hier nur Notfall-Fallback) */
+@media (max-width: 760px) and (orientation: landscape) {
+  #stage { grid-template-columns: 1.3fr 1fr; }
+  #next, #calwrap { display: none; }
+}
+
+</style>
+</head>
+<body class="display">
+
+<div id="stage">
+  <section id="status" aria-live="polite">
+    <div id="roomtag"></div>
+    <div id="sbody">
+      <div id="sicon" class="ic" aria-hidden="true"></div>
+      <h1 id="slabel"></h1>
+      <p id="ssub"></p>
+      <div id="stimer" hidden></div>
+    </div>
+    <div id="smsg" hidden></div>
+  </section>
+
+  <aside id="side">
+    <div id="person">
+      <div id="photo"></div>
+      <div id="pinfo">
+        <div id="pname"></div>
+        <div id="ptitle"></div>
+      </div>
+    </div>
+
+    <div id="clockrow">
+      <div>
+        <div id="clock">--:--</div>
+        <div id="date"></div>
+      </div>
+      <div id="weather" hidden>
+        <span id="wicon"></span>
+        <span id="wtemp"></span>
+      </div>
+    </div>
+
+    <div id="calwrap">
+      <div id="calhead"></div>
+      <div id="calgrid"></div>
+    </div>
+
+    <div id="next">
+      <div id="nexth"></div>
+      <ul id="nextlist"></ul>
+    </div>
+
+    <div id="actions">
+      <button id="bellbtn" class="act" type="button"><span class="ai">🔔</span><span id="belltxt"></span></button>
+      <button id="qrbtn" class="act" type="button" hidden><span class="ai">▦</span><span id="qrtxt"></span></button>
+      <button id="sosbtn" class="act sos" type="button"><span class="ai">✚</span><span id="sostxt"></span></button>
+    </div>
+  </aside>
+</div>
+
+<div id="overlay" hidden>
+  <div id="ovbox"></div>
+</div>
+<div id="night"></div>
+<div id="rotate"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+/* MainGate – gemeinsamer Kern: Datenzugriff (Firebase oder Demo), Statuslogik, Hilfsfunktionen */
+(function (global) {
+  'use strict';
+
+  var FB = global.MAINGATE_FIREBASE || {};
+  var hasFirebaseConfig = !!(FB.apiKey && FB.databaseURL);
+
+  /* ---------- Standardwerte ---------- */
+  var DEFAULT_STATUSES = [
+    { id: 'free',    label: 'Herzlich willkommen', sub: 'Bitte eintreten',               color: '#1fa75a', icon: '✅' },
+    { id: 'knock',   label: 'Bitte klopfen',       sub: 'Ich bin da – kurz anklopfen',   color: '#2f7de1', icon: '✊' },
+    { id: 'busy',    label: 'Nicht stören',        sub: 'Nur in dringenden Fällen',      color: '#e0452f', icon: '🔕' },
+    { id: 'meeting', label: 'In einem Meeting',    sub: 'NICHT REINKOMMEN',              color: '#a8201a', icon: '⛔' },
+    { id: 'call',    label: 'Telefonat',           sub: 'Bitte einen Moment warten',     color: '#e8812a', icon: '📞' },
+    { id: 'back',    label: 'Bin gleich zurück',   sub: 'Bitte kurz warten',             color: '#d9a514', icon: '⏳' },
+    { id: 'away',    label: 'Nicht im Haus',       sub: 'Heute nicht erreichbar',        color: '#5b6b85', icon: '🏠' }
+  ];
+
+  var DEFAULT_CONFIG = {
+    name: 'Dein Name',
+    title: 'Deine Funktion',
+    room: 'Raum 1.01',
+    photo: '',
+    lang: 'de',
+    city: 'Frankfurt am Main',
+    lat: 50.1109,
+    lon: 8.6821,
+    statuses: DEFAULT_STATUSES,
+    defaultStatusId: 'knock',
+    calendarStatusId: 'meeting',
+    schedule: [],
+    messages: ['Bin in einem anderen Raum', 'Bitte Zettel hinterlassen', 'Pakete bitte am Empfang abgeben'],
+    showTitles: false,
+    night: { enabled: true, from: '22:00', to: '06:00', dim: 0.7 },
+    emergency: [
+      { label: 'Feuerwehr / Rettungsdienst', number: '112' },
+      { label: 'Polizei', number: '110' }
+    ],
+    qr: { label: 'Kontakt', text: '' },
+    pinHash: '',
+    lockMinutes: 5,
+    ms: { clientId: '', tenant: 'common' }
+  };
+
+  var DEFAULT_CURRENT = { mode: 'manual', statusId: 'knock', message: '', backUntil: 0, emergency: false, updatedAt: 0 };
+
+  /* ---------- kleine Helfer ---------- */
+  function clone(v) { return v === undefined ? null : JSON.parse(JSON.stringify(v)); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function uid() { return Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-3); }
+  function toArray(x) {
+    if (Array.isArray(x)) return x.filter(function (i) { return i != null; });
+    if (x && typeof x === 'object') return Object.keys(x).map(function (k) { return x[k]; });
+    return [];
+  }
+  function fmtHM(ms) { var d = new Date(ms); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function hhmm(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function isImageSrc(s) { return /^(data:image|https?:)/.test(s || ''); }
+  function iconHTML(icon) {
+    return isImageSrc(icon) ? '<img src="' + esc(icon) + '" alt="">' : esc(icon || '•');
+  }
+  function setIcon(el, icon) {
+    el.textContent = '';
+    if (isImageSrc(icon)) { var i = new Image(); i.alt = ''; i.src = icon; el.appendChild(i); }
+    else el.textContent = icon || '•';
+  }
+
+  function hexToRgb(hex) {
+    var h = String(hex || '#666').replace('#', '');
+    if (h.length === 3) h = h.split('').map(function (c) { return c + c; }).join('');
+    var n = parseInt(h, 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  function rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(function (v) { return pad2(Math.max(0, Math.min(255, Math.round(v)))); }).join('');
+  }
+  function pad2(n) { var s = n.toString(16); return s.length < 2 ? '0' + s : s; }
+  function shade(hex, amt) { // amt -1..1 (negativ = dunkler)
+    var c = hexToRgb(hex);
+    return amt < 0
+      ? rgbToHex(c[0] * (1 + amt), c[1] * (1 + amt), c[2] * (1 + amt))
+      : rgbToHex(c[0] + (255 - c[0]) * amt, c[1] + (255 - c[1]) * amt, c[2] + (255 - c[2]) * amt);
+  }
+  function readableText(hex) {
+    var c = hexToRgb(hex);
+    var l = (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255;
+    return l > 0.62 ? '#0a1424' : '#ffffff';
+  }
+
+  function resizeImage(file, max, mime, quality) {
+    return new Promise(function (resolve, reject) {
+      var fr = new FileReader();
+      fr.onerror = function () { reject(new Error('Datei konnte nicht gelesen werden')); };
+      fr.onload = function () {
+        var img = new Image();
+        img.onerror = function () { reject(new Error('Bild konnte nicht geöffnet werden')); };
+        img.onload = function () {
+          var s = Math.min(1, max / Math.max(img.width, img.height));
+          var w = Math.max(1, Math.round(img.width * s)), h = Math.max(1, Math.round(img.height * s));
+          var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+          var ctx = cv.getContext('2d');
+          if (mime === 'image/jpeg') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); }
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(cv.toDataURL(mime || 'image/png', quality || 0.85));
+        };
+        img.src = fr.result;
+      };
+      fr.readAsDataURL(file);
+    });
+  }
+
+  function simpleHash(str) {
+    var h = 5381; for (var i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0;
+    return 'x' + (h >>> 0).toString(16);
+  }
+  function sha256Hex(str) {
+    var salted = 'maingate:' + str;
+    if (!(global.crypto && global.crypto.subtle && global.TextEncoder)) return Promise.resolve(simpleHash(salted));
+    return global.crypto.subtle.digest('SHA-256', new TextEncoder().encode(salted)).then(function (buf) {
+      return Array.prototype.map.call(new Uint8Array(buf), function (b) { return pad2(b); }).join('');
+    });
+  }
+
+  /* ---------- Konfiguration zusammenführen ---------- */
+  function mergeConfig(v) {
+    var c = clone(DEFAULT_CONFIG);
+    if (!v || typeof v !== 'object') return c;
+    Object.keys(v).forEach(function (k) {
+      if (v[k] === null || v[k] === undefined) return;
+      if (k === 'night' || k === 'qr' || k === 'ms') c[k] = Object.assign({}, c[k], v[k]);
+      else c[k] = v[k];
+    });
+    c.statuses = toArray(v.statuses);
+    if (!c.statuses.length) c.statuses = clone(DEFAULT_STATUSES);
+    c.schedule = toArray(v.schedule);
+    c.messages = toArray(v.messages);
+    c.emergency = v.emergency === undefined ? clone(DEFAULT_CONFIG.emergency) : toArray(v.emergency);
+    c.lat = Number(c.lat); c.lon = Number(c.lon);
+    if (isNaN(c.lat)) c.lat = DEFAULT_CONFIG.lat;
+    if (isNaN(c.lon)) c.lon = DEFAULT_CONFIG.lon;
+    return c;
+  }
+  function mergeCurrent(v) { return Object.assign({}, DEFAULT_CURRENT, v && typeof v === 'object' ? v : {}); }
+
+  /* ---------- Termine ---------- */
+  function normEvents(own, ms) {
+    var out = [];
+    toArray(own).forEach(function (e) { push(e, 'own'); });
+    toArray(ms).forEach(function (e) { push(e, 'ms'); });
+    function push(e, src) {
+      var s = Number(e.start), n = Number(e.end);
+      if (!isFinite(s) || !isFinite(n)) return;
+      if (src === 'ms' && (e.showAs === 'free')) return;
+      out.push({ id: e.id || (src + s), title: e.title || '', start: s, end: n > s ? n : s + 3600000, allDay: !!e.allDay, src: src });
+    }
+    out.sort(function (a, b) { return a.start - b.start; });
+    return out;
+  }
+  function activeEvent(list, now) {
+    for (var i = 0; i < list.length; i++) {
+      var e = list[i];
+      if (!e.allDay && e.start <= now && now < e.end) return e;
+    }
+    return null;
+  }
+  function activeRule(rules, d) {
+    var t = hhmm(d), day = d.getDay();
+    for (var i = 0; i < rules.length; i++) {
+      var r = rules[i];
+      var days = toArray(r.days);
+      if (days.indexOf(day) === -1) continue;
+      if (r.from <= t && t < r.to) return r;
+    }
+    return null;
+  }
+
+  /* ---------- Was zeigt das Türschild gerade? ---------- */
+  function computeStatus(cfg, cur, events, now) {
+    var list = cfg.statuses;
+    function byId(id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
+    if (cur.emergency) return { kind: 'emergency' };
+    if (cur.mode === 'auto') {
+      var ev = activeEvent(events, now);
+      if (ev) return { kind: 'calendar', status: byId(cfg.calendarStatusId) || list[0], event: ev };
+      var rule = activeRule(cfg.schedule, new Date(now));
+      if (rule && byId(rule.statusId)) return { kind: 'schedule', status: byId(rule.statusId) };
+      return { kind: 'default', status: byId(cfg.defaultStatusId) || list[0] };
+    }
+    return { kind: 'manual', status: byId(cur.statusId) || byId(cfg.defaultStatusId) || list[0] };
+  }
+
+  function isNight(cfg, d) {
+    var n = cfg.night; if (!n || !n.enabled) return false;
+    var t = hhmm(d);
+    return n.from > n.to ? (t >= n.from || t < n.to) : (t >= n.from && t < n.to);
+  }
+
+  /* ---------- Wetter (Open-Meteo, ohne Schlüssel) ---------- */
+  function fetchWeather(lat, lon) {
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
+      '&current=temperature_2m,weather_code&timezone=auto';
+    return fetch(url).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (j) { return { temp: j.current.temperature_2m, code: j.current.weather_code }; });
+  }
+  function weatherEmoji(code) {
+    if (code === 0) return '☀️';
+    if (code <= 2) return '🌤️';
+    if (code === 3) return '☁️';
+    if (code === 45 || code === 48) return '🌫️';
+    if (code >= 51 && code <= 57) return '🌦️';
+    if (code >= 61 && code <= 67) return '🌧️';
+    if (code >= 71 && code <= 77) return '🌨️';
+    if (code >= 80 && code <= 82) return '🌧️';
+    if (code === 85 || code === 86) return '🌨️';
+    if (code >= 95) return '⛈️';
+    return '🌡️';
+  }
+
+  /* ---------- Daten: Firebase oder Demo ---------- */
+  function makeFirebaseDB() {
+    global.firebase.initializeApp(FB);
+    var root = global.firebase.database().ref('maingate');
+    return {
+      mode: 'firebase',
+      watch: function (key, cb) {
+        var r = root.child(key);
+        var h = r.on('value', function (s) { cb(s.val()); });
+        return function () { r.off('value', h); };
+      },
+      set: function (key, val) { return root.child(key).set(val === undefined ? null : clone(val)); }
+    };
+  }
+  function makeDemoDB() {
+    var KEY = 'maingate-demo', subs = {};
+    function load() { try { return JSON.parse(global.localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; } }
+    function emitTo(cb, key) { var s = load(); cb(s[key] === undefined ? null : s[key]); }
+    function emit(key) { (subs[key] || []).slice().forEach(function (cb) { emitTo(cb, key); }); }
+    global.addEventListener('storage', function (e) {
+      if (e.key === KEY) Object.keys(subs).forEach(emit);
+    });
+    return {
+      mode: 'demo',
+      watch: function (key, cb) {
+        (subs[key] = subs[key] || []).push(cb);
+        setTimeout(function () { emitTo(cb, key); }, 0);
+        return function () { subs[key] = subs[key].filter(function (x) { return x !== cb; }); };
+      },
+      set: function (key, val) {
+        var s = load();
+        if (val === null || val === undefined) delete s[key]; else s[key] = clone(val);
+        try { global.localStorage.setItem(KEY, JSON.stringify(s)); }
+        catch (e) { toast('Speicher voll – Foto oder Icons sind zu groß.'); }
+        emit(key);
+        return Promise.resolve();
+      }
+    };
+  }
+
+  /* ---------- Anmeldung (nur Firebase-Modus) ---------- */
+  var loginEl = null;
+  function showLogin(onSubmit) {
+    if (loginEl) { loginEl.hidden = false; return; }
+    loginEl = document.createElement('div');
+    loginEl.id = 'mg-login';
+    loginEl.innerHTML =
+      '<form class="mg-login-box" autocomplete="on">' +
+      '<div class="mg-brand">MainGate</div>' +
+      '<p class="mg-login-lead">Einmal anmelden – danach bleibt dieses Gerät angemeldet.</p>' +
+      '<label>E-Mail<input type="email" name="email" autocomplete="username" required></label>' +
+      '<label>Passwort<input type="password" name="password" autocomplete="current-password" required></label>' +
+      '<p class="mg-login-err" role="alert"></p>' +
+      '<button class="btn primary" type="submit">Anmelden</button>' +
+      '</form>';
+    document.body.appendChild(loginEl);
+    loginEl.querySelector('form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var f = e.target, err = loginEl.querySelector('.mg-login-err');
+      err.textContent = '';
+      onSubmit(f.email.value.trim(), f.password.value).catch(function (ex) {
+        var code = ex && ex.code || '';
+        err.textContent = /invalid|wrong|user-not-found|credential/.test(code)
+          ? 'E-Mail oder Passwort stimmt nicht.'
+          : /network/.test(code) ? 'Keine Verbindung zum Internet.'
+          : 'Anmeldung fehlgeschlagen (' + (code || 'unbekannt') + ').';
+      });
+    });
+  }
+  function hideLogin() { if (loginEl) loginEl.hidden = true; }
+
+  function banner(text, cls) {
+    var b = document.createElement('div');
+    b.className = 'mg-banner ' + (cls || '');
+    b.textContent = text;
+    document.body.appendChild(b);
+    return b;
+  }
+
+  var MG = { DB: null, mode: 'demo' };
+
+  function start() {
+    return new Promise(function (resolve) {
+      if (hasFirebaseConfig && !global.firebase) {
+        banner('Firebase konnte nicht geladen werden (offline?). Demo-Modus aktiv.', 'warn');
+      }
+      if (!(hasFirebaseConfig && global.firebase)) {
+        MG.DB = makeDemoDB(); MG.mode = 'demo';
+        if (!hasFirebaseConfig && !/preview=1/.test(location.search)) {
+          var b = banner('Demo-Modus – Daten bleiben auf diesem Gerät. Firebase eintragen: README, Schritt 2', 'demo');
+          setTimeout(function () { b.classList.add('hide'); }, 9000);
+        }
+        resolve(); return;
+      }
+      MG.DB = makeFirebaseDB(); MG.mode = 'firebase';
+      var auth = global.firebase.auth(), started = false;
+      auth.onAuthStateChanged(function (u) {
+        if (u) {
+          hideLogin();
+          if (!started) { started = true; resolve(); }
+        } else {
+          if (started) { location.reload(); return; }
+          showLogin(function (mail, pw) { return auth.signInWithEmailAndPassword(mail, pw); });
+        }
+      });
+    });
+  }
+  function logout() {
+    if (MG.mode === 'firebase') return global.firebase.auth().signOut().then(function () { location.reload(); });
+    location.reload();
+    return Promise.resolve();
+  }
+
+  /* ---------- Toast, Ton, Display wach halten ---------- */
+  var toastTimer = null;
+  function toast(msg) {
+    var t = document.getElementById('toast');
+    if (!t) { t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); }
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 3600);
+  }
+
+  var audioCtx = null;
+  function unlockAudio() {
+    try {
+      var AC = global.AudioContext || global.webkitAudioContext;
+      if (!audioCtx && AC) audioCtx = new AC();
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    } catch (e) { /* kein Ton möglich */ }
+  }
+  function beep() {
+    try {
+      if (!audioCtx) return;
+      [0, 0.28].forEach(function (off, i) {
+        var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = 'sine'; o.frequency.value = i ? 660 : 880;
+        g.gain.setValueAtTime(0.0001, audioCtx.currentTime + off);
+        g.gain.exponentialRampToValueAtTime(0.35, audioCtx.currentTime + off + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + off + 0.25);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(audioCtx.currentTime + off); o.stop(audioCtx.currentTime + off + 0.26);
+      });
+    } catch (e) { /* ignorieren */ }
+  }
+
+  function keepAwake() {
+    var lock = null;
+    function req() {
+      if (!('wakeLock' in navigator) || document.visibilityState !== 'visible') return;
+      navigator.wakeLock.request('screen').then(function (l) { lock = l; }).catch(function () { /* nicht verfügbar */ });
+    }
+    document.addEventListener('visibilitychange', req);
+    req();
+    return function () { if (lock) lock.release(); };
+  }
+
+  function qrSvg(text) {
+    if (!global.qrcode || !text) return '';
+    var q = global.qrcode(0, 'M'); q.addData(text); q.make();
+    return q.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+  }
+
+  /* ---------- Texte der Anzeige ---------- */
+  var STR = {
+    de: {
+      bell: 'Klingeln', sos: 'Notfall', qr: 'QR-Code', next: 'Nächste Termine', none: 'Keine Termine in den nächsten Tagen',
+      today: 'Heute', tomorrow: 'Morgen', now: 'jetzt', busy: 'Belegt', backIn: 'Zurück in', until: 'bis', allDay: 'ganztägig',
+      sosTitle: 'NOTFALL', sosSub: 'Bitte Ruhe bewahren – Hilfe wird geholt', sosHelp: 'Notfallnummern', bellSent: 'Danke – ich wurde benachrichtigt.',
+      outside: 'Außen', rotate: 'Bitte das iPad quer halten', close: 'Schließen', hint: 'Tipp: Teilen → „Zum Home-Bildschirm“ für den Vollbildmodus',
+      locale: 'de-DE'
+    },
+    en: {
+      bell: 'Ring bell', sos: 'Emergency', qr: 'QR code', next: 'Upcoming', none: 'No appointments in the next days',
+      today: 'Today', tomorrow: 'Tomorrow', now: 'now', busy: 'Busy', backIn: 'Back in', until: 'until', allDay: 'all day',
+      sosTitle: 'EMERGENCY', sosSub: 'Please stay calm – help is on the way', sosHelp: 'Emergency numbers', bellSent: 'Thanks – I have been notified.',
+      outside: 'Outside', rotate: 'Please hold the iPad in landscape', close: 'Close', hint: 'Tip: Share → “Add to Home Screen” for full screen',
+      locale: 'en-GB'
+    }
+  };
+
+  Object.assign(MG, {
+    DEFAULT_CONFIG: DEFAULT_CONFIG, DEFAULT_STATUSES: DEFAULT_STATUSES, DEFAULT_CURRENT: DEFAULT_CURRENT,
+    mergeConfig: mergeConfig, mergeCurrent: mergeCurrent, normEvents: normEvents, computeStatus: computeStatus,
+    activeEvent: activeEvent, isNight: isNight, fetchWeather: fetchWeather, weatherEmoji: weatherEmoji,
+    start: start, logout: logout, toast: toast, beep: beep, unlockAudio: unlockAudio, keepAwake: keepAwake,
+    qrSvg: qrSvg, STR: STR, esc: esc, uid: uid, pad: pad, toArray: toArray, clone: clone, fmtHM: fmtHM,
+    iconHTML: iconHTML, setIcon: setIcon, shade: shade, readableText: readableText,
+    resizeImage: resizeImage, sha256Hex: sha256Hex
+  });
+  global.MaingateCore = MG;
+})(window);
+
+</script>
+<script>
+/* MainGate – Türschild (Anzeige-iPad) */
+(function () {
+  'use strict';
+  var MG = window.MaingateCore;
+  var $ = function (id) { return document.getElementById(id); };
+  var preview = new URLSearchParams(location.search).get('preview') === '1';
+  if (preview) document.body.classList.add('preview');
+
+  var S = {
+    config: MG.mergeConfig(null), current: MG.mergeCurrent(null),
+    own: null, ms: null, events: [], weather: null,
+    lastKey: '', lastDay: '', lastNext: '', lastBell: 0, overlayTimer: null, weatherTimer: null
+  };
+
+  function T() { return MG.STR[S.config.lang] || MG.STR.de; }
+  function fmt(opts, d) { return new Intl.DateTimeFormat(T().locale, opts).format(d); }
+
+  /* ---------- feste Teile (ändern sich nur mit der Konfiguration) ---------- */
+  function renderStatic() {
+    var c = S.config, t = T();
+    document.documentElement.lang = c.lang === 'en' ? 'en' : 'de';
+    $('roomtag').textContent = c.room || '';
+    $('pname').textContent = c.name || '';
+    $('ptitle').textContent = c.title || '';
+    $('ptitle').hidden = !c.title;
+    var ph = $('photo'); ph.textContent = '';
+    if (c.photo) { var img = new Image(); img.alt = ''; img.src = c.photo; ph.appendChild(img); }
+    else {
+      ph.textContent = (c.name || '?').split(/\s+/).slice(0, 2).map(function (w) { return w.charAt(0); }).join('').toUpperCase();
+    }
+    $('belltxt').textContent = t.bell;
+    $('sostxt').textContent = t.sos;
+    $('qrtxt').textContent = t.qr;
+    $('nexth').textContent = t.next;
+    $('rotate').textContent = t.rotate;
+    $('qrbtn').hidden = !(c.qr && c.qr.text && window.qrcode);
+    $('sosbtn').hidden = !c.emergency.some(function (e) { return e.number; });
+    var dow = ''; // Kopfzeile des Monatskalenders wird in renderCalendar gebaut
+    void dow;
+  }
+
+  /* ---------- Monatskalender ---------- */
+  function dayKey(d) { return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); }
+
+  function renderCalendar(now) {
+    var y = now.getFullYear(), m = now.getMonth();
+    $('calhead').textContent = fmt({ month: 'long', year: 'numeric' }, now);
+
+    var has = {};
+    S.events.forEach(function (e) {
+      var d = new Date(e.start); d.setHours(0, 0, 0, 0);
+      var last = new Date(e.end - 1); last.setHours(0, 0, 0, 0);
+      var guard = 0;
+      while (d <= last && guard++ < 62) { has[dayKey(d)] = true; d.setDate(d.getDate() + 1); }
+    });
+
+    var html = '';
+    for (var i = 0; i < 7; i++) {
+      html += '<div class="dow">' + MG.esc(fmt({ weekday: 'narrow' }, new Date(2024, 0, 1 + i))) + '</div>'; // 1.1.2024 = Montag
+    }
+    var first = new Date(y, m, 1), offset = (first.getDay() + 6) % 7;
+    var dim = new Date(y, m + 1, 0).getDate();
+    var cells = Math.ceil((offset + dim) / 7) * 7;
+    for (var n = 0; n < cells; n++) {
+      var d = new Date(y, m, 1 - offset + n);
+      var cls = 'd' + (d.getMonth() !== m ? ' out' : '') + (dayKey(d) === dayKey(now) ? ' today' : '') + (has[dayKey(d)] ? ' has' : '');
+      html += '<div class="' + cls + '">' + d.getDate() + '</div>';
+    }
+    $('calgrid').innerHTML = html;
+  }
+
+  /* ---------- nächste Termine ---------- */
+  function renderNext(now) {
+    var t = T(), c = S.config, list = S.events.filter(function (e) { return e.end > now; }).slice(0, 4);
+    var today = new Date(now); today.setHours(0, 0, 0, 0);
+    var html = '';
+    if (!list.length) html = '<li class="empty"><span class="n">' + MG.esc(t.none) + '</span></li>';
+    list.forEach(function (e) {
+      var s = new Date(e.start), sd = new Date(e.start); sd.setHours(0, 0, 0, 0);
+      var diff = Math.round((sd - today) / 86400000), day;
+      if (diff <= 0) day = t.today;
+      else if (diff === 1) day = t.tomorrow;
+      else day = fmt({ weekday: 'short', day: '2-digit', month: '2-digit' }, s);
+      var time = e.allDay ? t.allDay : MG.fmtHM(e.start) + '–' + MG.fmtHM(e.end);
+      var title = c.showTitles ? (e.title || t.busy) : t.busy;
+      var isNow = !e.allDay && e.start <= now && now < e.end;
+      html += '<li class="' + (isNow ? 'now' : '') + '"><span class="t">' + MG.esc(time) + '</span>' +
+        '<span class="w">' + MG.esc(isNow ? t.now : day) + '</span><span class="n">' + MG.esc(title) + '</span></li>';
+    });
+    if (html !== S.lastNext) { S.lastNext = html; $('nextlist').innerHTML = html; }
+  }
+
+  /* ---------- Status ---------- */
+  function fitLabel() {
+    var el = $('slabel'); el.style.fontSize = '';
+    var size = parseFloat(getComputedStyle(el).fontSize), max = window.innerHeight * 0.36, guard = 0;
+    while (el.offsetHeight > max && size > 36 && guard++ < 40) { size *= 0.94; el.style.fontSize = size + 'px'; }
+  }
+
+  function applyStatus(now) {
+    var t = T(), r = MG.computeStatus(S.config, S.current, S.events, now), st = r.status || {};
+    var label, sub, color, icon, msg = S.current.message || '';
+    if (r.kind === 'emergency') { label = t.sosTitle; sub = t.sosSub; color = '#d4271a'; icon = '🚨'; }
+    else { label = st.label || ''; sub = st.sub || ''; color = st.color || '#2f7de1'; icon = st.icon || ''; }
+
+    var key = [r.kind, label, sub, color, (icon || '').length, icon.slice(0, 12), msg, S.config.lang].join('|');
+    if (key !== S.lastKey) {
+      S.lastKey = key;
+      var stage = $('stage');
+      stage.style.setProperty('--c', color);
+      stage.style.setProperty('--c2', MG.shade(color, -0.4));
+      stage.style.setProperty('--tc', MG.readableText(color));
+      stage.classList.toggle('sos', r.kind === 'emergency');
+      MG.setIcon($('sicon'), icon);
+      $('slabel').textContent = label;
+      $('ssub').textContent = sub;
+      $('ssub').hidden = !sub;
+      $('smsg').textContent = msg;
+      $('smsg').hidden = !msg;
+      fitLabel();
+    }
+
+    var timer = $('stimer'), text = '';
+    if (r.kind === 'manual' && st.id === 'back' && S.current.backUntil > now) {
+      var rem = Math.ceil((S.current.backUntil - now) / 1000);
+      text = t.backIn + ' ' + MG.pad(Math.floor(rem / 60)) + ':' + MG.pad(rem % 60);
+    } else if (r.kind === 'calendar' && r.event) {
+      text = t.until + ' ' + MG.fmtHM(r.event.end);
+    }
+    if (timer.textContent !== text) timer.textContent = text;
+    timer.hidden = !text;
+  }
+
+  /* ---------- Takt ---------- */
+  function tick() {
+    var now = Date.now(), d = new Date(now);
+    $('clock').textContent = MG.pad(d.getHours()) + ':' + MG.pad(d.getMinutes());
+    var ds = fmt({ weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }, d);
+    if ($('date').textContent !== ds) $('date').textContent = ds;
+    var k = dayKey(d);
+    if (k !== S.lastDay) { S.lastDay = k; renderCalendar(d); }
+    renderNext(now);
+    applyStatus(now);
+    if (!preview) {
+      var dim = MG.isNight(S.config, d) ? Number(S.config.night.dim) || 0.7 : 0;
+      $('night').style.opacity = dim;
+      if (d.getHours() === 3 && d.getMinutes() === 30 && d.getSeconds() === 0) location.reload();
+    }
+  }
+
+  function rebuildEvents() { S.events = MG.normEvents(S.own, S.ms); S.lastDay = ''; tick(); }
+
+  /* ---------- Wetter ---------- */
+  function loadWeather() {
+    clearTimeout(S.weatherTimer);
+    MG.fetchWeather(S.config.lat, S.config.lon).then(function (w) {
+      $('wicon').textContent = MG.weatherEmoji(w.code);
+      $('wtemp').textContent = Math.round(w.temp) + ' °C';
+      $('weather').hidden = false;
+      $('weather').title = T().outside + ' · ' + (S.config.city || '');
+    }).catch(function () { /* offline: Anzeige bleibt wie sie ist */ })
+      .then(function () { S.weatherTimer = setTimeout(loadWeather, 10 * 60 * 1000); });
+  }
+
+  /* ---------- Overlay ---------- */
+  function openOverlay(html) {
+    $('ovbox').innerHTML = html;
+    $('overlay').hidden = false;
+    clearTimeout(S.overlayTimer);
+    S.overlayTimer = setTimeout(closeOverlay, 60000);
+  }
+  function closeOverlay() { $('overlay').hidden = true; clearTimeout(S.overlayTimer); }
+
+  function wire() {
+    $('overlay').addEventListener('click', closeOverlay);
+
+    $('bellbtn').addEventListener('click', function () {
+      var n = Date.now();
+      if (n - S.lastBell > 15000) { S.lastBell = n; MG.DB.set('doorbell', { ts: n }); }
+      MG.toast(T().bellSent);
+    });
+
+    $('sosbtn').addEventListener('click', function () {
+      var t = T(), rows = '';
+      S.config.emergency.filter(function (e) { return e.number; }).forEach(function (e) {
+        rows += '<div class="row"><span>' + MG.esc(e.label) + '</span><b>' + MG.esc(e.number) + '</b></div>';
+      });
+      openOverlay('<h2>' + MG.esc(t.sosHelp) + '</h2><div class="list">' + rows + '</div>' +
+        '<button class="btn primary" type="button">' + MG.esc(t.close) + '</button>');
+    });
+
+    $('qrbtn').addEventListener('click', function () {
+      var q = S.config.qr, svg = MG.qrSvg(q.text);
+      if (!svg) return;
+      openOverlay('<h2>' + MG.esc(T().qr) + '</h2><div class="qr">' + svg + '</div>' +
+        (q.label ? '<p class="cap">' + MG.esc(q.label) + '</p>' : '') +
+        '<button class="btn primary" type="button">' + MG.esc(T().close) + '</button>');
+    });
+  }
+
+  /* ---------- Start ---------- */
+  renderStatic();
+  wire();
+
+  MG.start().then(function () {
+    var DB = MG.DB;
+    DB.watch('config', function (v) {
+      S.config = MG.mergeConfig(v);
+      S.lastKey = ''; S.lastDay = ''; S.lastNext = '';
+      renderStatic(); loadWeather(); tick();
+    });
+    DB.watch('current', function (v) { S.current = MG.mergeCurrent(v); tick(); });
+    DB.watch('events', function (v) { S.own = v; rebuildEvents(); });
+    DB.watch('msEvents', function (v) { S.ms = v; rebuildEvents(); });
+    setInterval(tick, 1000);
+    tick();
+
+    if (!preview) {
+      MG.keepAwake();
+      var standalone = window.navigator.standalone || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+      if (!standalone) setTimeout(function () { MG.toast(T().hint); }, 2500);
+    }
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { S.lastKey = ''; tick(); });
+  });
+
+  window.addEventListener('resize', function () { S.lastKey = ''; tick(); });
+})();
+
+</script>
+</body>
+</html>
